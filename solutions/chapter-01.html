@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 1. Как модель учится на примерах | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 1. Как модель учится на примерах</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li></ul></nav>
+
+<article id="task-01"><h2>Задание 1</h2>
+<p>Предсказание равно 3 × 7 + 2 = 23. Расстояние 7 км выходит за пределы обучающих значений от 1 до 5 км. Формула даёт число, но для оценки точности нужен известный ответ и проверка на подходящих данных. Даже совпадение в одной новой точке не подтверждает точность во всём диапазоне.</p>
+</article>
+<article id="task-02"><h2>Задание 2</h2>
+<p>Предсказания: 3, 6, 12 и 15. Известные ответы: 5, 8, 14 и 17. Каждая абсолютная ошибка равна 2, поэтому MAE = (2 + 2 + 2 + 2) / 4 = 2. При b = 2 ошибка на этих записях равна 0. В данном примере постоянная часть нужна, чтобы воспроизвести зависимость.</p>
+</article>
+<article id="task-03"><h2>Задание 3</h2>
+<p>Время печати представляет собой числовую величину: это регрессия. Распознавание буквы относится к классификации. Продолжение рассказа относится к генерации. Номер аудитории при выборе из известных номеров служит названием класса, поэтому это классификация. Разница между номерами 215 и 216 сама по себе не выражает величину ошибки распознавания.</p>
+</article>
+<article id="task-04"><h2>Задание 4</h2>
+<p>Возможные причины: переобучение, изменение условий новых данных, неодинаковая обработка входов или ошибки в известных ответах. Нужно проверить происхождение и состав выборок, отсутствие пересечений, одинаковую подготовку признаков и способ вычисления ошибки. Полезно посмотреть, как меняется ошибка на обучающих и валидационных данных по мере обучения. По двум итоговым числам причину однозначно установить нельзя.</p>
+</article>
+<article id="task-05"><h2>Задание 5</h2>
+<p>Расстояние и массу можно использовать, если они действительно известны при приёме заказа. Фактическое время вручения относится к будущему и в этот момент неизвестно. Его использование создаёт утечку информации: при проверке модель получает сведения, которых не будет при реальном предсказании. Для вычисления целевой длительности после завершения доставки время вручения использовать можно, но входным признаком оно от этого не становится.</p>
+</article>
+<article id="task-06"><h2>Задание 6</h2>
+<p>Пример: оценивать время ожидания печати в университетском центре. На вход подать число заданий в очереди и число страниц, ожидающих печати в момент обращения. Целью будет фактически измеренное время ожидания. Базовое решение может всегда возвращать медианное ожидание из обучающих записей. Чтобы медиану найти, значения упорядочивают и берут центральное; при чётном числе значений берут среднее двух центральных. Для проверки можно отложить записи за более поздние дни, не используя их ответы при подготовке решения. Подойдёт и другая задача, если признаки доступны в момент предсказания, цель измерима, а отложенные записи не используются для настройки.</p>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

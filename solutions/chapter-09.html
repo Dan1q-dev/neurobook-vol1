@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 9. Нейрон и многослойная сеть | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 9. Нейрон и многослойная сеть</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-09.zip" download="Книга - глава 9 нейрон и многослойная сеть.zip">Скачать архив главы 9</a></p>
+<p>Все программы решений находятся в папке «Ответы». Числа в формулах округлены для записи. Сравнивайте промежуточные суммы и градиенты перед тем, как сверять потерю.</p>
+<article id="task-01"><h2>Задание 1. Прямой проход для заказа 301</h2>
+<p>Первая сумма равна 0,5 × 0,5 + 1 × 0 - 1 = -0,75. Вторая равна -0,5 × 0,5 - 0,5 × 0 + 0,5 = 0,25. После ReLU получаем 0 и 0,25. Выходная оценка z = 0 × 1 + 0,25 × (-1) - 1 = -1,25. Вероятность опоздания около 0,222700. Факт равен 0, поэтому вероятность правильного класса равна 1 - p, а потеря около 0,251929.</p>
+<p class="listing">Скрытые значения и вероятность <span>(Ответы/01-second-order.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+x = np.array([0.5, 0.0])
+W = np.array([[0.5, -0.5], [1.0, -0.5]])
+b, v = np.array([-1.0, 0.5]), np.array([1.0, -1.0])
+s = x @ W + b
+h = np.maximum(s, 0)
+z = h @ v - 1
+p = 1 / (1 + np.exp(-z))
+loss = np.logaddexp(0, z)
+print(&quot;s&quot;, s.tolist(), &quot;h&quot;, h.tolist())
+print(f&quot;z {z:.6f}, p {p:.6f}, потеря {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">s [-0.75, 0.25] h [0.0, 0.25]
+z -1.250000, p 0.222700, потеря 0.251929
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Две суммы без ReLU</h2>
+<p>Вычисляем (x @ W + b) · v + c. После раскрытия скобок коэффициенты при входах равны W @ v. Для x₁ это 0,5 × 1 + (-0,5) × (-1) = 1, для x₂ это 1 × 1 + (-0,5) × (-1) = 1,5. Свободный член равен b · v + c = -1 - 0,5 - 1 = -2,5. Для заказа 307 получаем z = 2 + 1,5 - 2,5 = 1. С ReLU вторая скрытая сумма превращается в ноль и выходная оценка равна 0.</p>
+<p class="listing">Сравнение оценок z <span>(Ответы/02-collapse-layers.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+x = np.array([2.0, 1.0])
+W = np.array([[0.5, -0.5], [1.0, -0.5]])
+b, v = np.array([-1.0, 0.5]), np.array([1.0, -1.0])
+c = -1.0
+weight, bias = W @ v, b @ v + c
+direct = x @ weight + bias
+two_sums = (x @ W + b) @ v + c
+with_relu = np.maximum(x @ W + b, 0) @ v + c
+print(&quot;Общий вес&quot;, weight.tolist(), &quot;смещение&quot;, bias)
+print(&quot;Одна сумма&quot;, direct, &quot;две суммы&quot;, two_sums)
+print(&quot;С ReLU&quot;, with_relu)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Общий вес [1.0, 1.5] смещение -2.5
+Одна сумма 1.0 две суммы 1.0
+С ReLU 0.0
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Другая метка и направление градиента</h2>
+<p>Входы и параметры сохранились, поэтому p = 0,5. При y = 0 производная по z равна 0,5. Производная по v₁ равна 0,5, по v₂ ноль, по c равна 0,5. Производные по h равны 0,5 и -0,5. ReLU пропускает только первый вклад. Значит, в первом столбце dW стоят 1 и 0,5, второй столбец нулевой. Для b получаем 0,5 и 0. Ненулевые градиенты имеют противоположный знак относительно примера с y = 1.</p>
+<p class="listing">Градиенты при y = 0 <span>(Ответы/03-switch-label.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+x = np.array([2.0, 1.0])
+W = np.array([[0.5, -0.5], [1.0, -0.5]])
+b, v = np.array([-1.0, 0.5]), np.array([1.0, -1.0])
+s = x @ W + b
+h = np.maximum(s, 0)
+z = h @ v - 1
+dz = 1 / (1 + np.exp(-z)) - 0
+ds = np.where(s &gt; 0, v * dz, 0.0)
+print(&quot;dz&quot;, dz)
+print(&quot;dW&quot;, np.outer(x, ds).tolist(), &quot;db&quot;, ds.tolist())
+print(&quot;dv&quot;, (h * dz).tolist(), &quot;dc&quot;, dz)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">dz 0.5
+dW [[1.0, 0.0], [0.5, 0.0]] db [0.5, 0.0]
+dv [0.5, 0.0] dc 0.5
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Шаг со скоростью 0,20</h2>
+<p>Градиенты исходной точки известны. У первого нейрона первый вес растёт с 0,5 до 0,7, второй с 1 до 1,1, смещение с -1 до -0,9. Первый выходной вес становится 1,1, выходное смещение -0,9. Второй скрытый нейрон и его выходной вес остаются прежними, поскольку их градиенты нулевые. Новая сумма s₁ = 2 × 0,7 + 1,1 - 0,9 = 1,6. Выходная оценка z = 1,6 × 1,1 - 0,9 = 0,86, p ≈ 0,702661, потеря около 0,352881.</p>
+<p class="listing">Подстановка после шага <span>(Ответы/04-step-point-two.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+x = np.array([2.0, 1.0])
+W = np.array([[0.5, -0.5], [1.0, -0.5]])
+b, v = np.array([-1.0, 0.5]), np.array([1.0, -1.0])
+c, rate = -1.0, 0.2
+dW = np.array([[-1.0, 0.0], [-0.5, 0.0]])
+db, dv, dc = np.array([-0.5, 0.0]), np.array([-0.5, 0.0]), -0.5
+W, b = W - rate * dW, b - rate * db
+v, c = v - rate * dv, c - rate * dc
+s = x @ W + b
+z = np.maximum(s, 0) @ v + c
+p = 1 / (1 + np.exp(-z))
+print(&quot;W&quot;, W.round(2).tolist(), &quot;b&quot;, b.round(2).tolist())
+print(&quot;v&quot;, v.round(2).tolist(), f&quot;c {c:.2f}&quot;)
+print(f&quot;s1 {s[0]:.6f}, z {z:.6f}, p {p:.6f}&quot;)
+print(f&quot;Потеря {np.logaddexp(0, -z):.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">W [[0.7, -0.5], [1.1, -0.5]] b [-0.9, 0.5]
+v [1.1, -1.0] c -0.90
+s1 1.600000, z 0.860000, p 0.702661
+Потеря 0.352881
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Граница активации</h2>
+<p>Изначально s₂ = -1. Сдвиги ±0,01 дают -0,99 и -1,01. В обоих случаях h₂ = 0, z = 0 и потери равны, поэтому численная производная равна нулю. При сдвиге на 1,10 сумма s₂ станет 0,10. Второй нейрон включится, его вклад в z будет 0,10 × (-1) = -0,10. Потеря вырастет до ln(1 + exp(0,10)) ≈ 0,744397. Производная в исходной точке описывает изменение лишь в её окрестности.</p>
+<p class="listing">Малое и большое изменение смещения <span>(Ответы/05-relu-boundary.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import exp, log1p
+
+def loss(shift):
+    second = max(0, -1 + shift)
+    z = 1 - second - 1
+    return log1p(exp(-z))
+
+eps = 0.01
+slope = (loss(eps) - loss(-eps)) / (2 * eps)
+print(f&quot;Потери рядом {loss(-eps):.6f} и {loss(eps):.6f}&quot;)
+print(f&quot;Производная {slope:.6f}&quot;)
+print(f&quot;Потеря при сдвиге 1,10 {loss(1.10):.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Потери рядом 0.693147 и 0.693147
+Производная 0.000000
+Потеря при сдвиге 1,10 0.744397
+</pre>
+<p>log1p(t) вычисляет ln(1 + t). В этом решении изменяем только второй скрытый нейрон, поэтому его активация вычитается из прежнего z = 0. Вес этой связи равен -1.</p>
+</article>
+<article id="task-06"><h2>Задание 6. Сложение вкладов двух ветвей</h2>
+<p>Первая ветвь даёт 2 × (-0,4) = -0,8. Вторая даёт (-3) × 0,1 = -0,3. Производная по общему h равна сумме -1,1. При s = 0,6 ReLU имеет наклон 1, поэтому производная по s равна -1,1. При s = -0,6 наклон 0 и производная равна 0.</p>
+<p class="listing">От ветвей к скрытой сумме <span>(Ответы/06-two-paths.py)</span></p><pre tabindex="0" aria-label="Код"><code>weights, downstream = [2, -3], [-0.4, 0.1]
+parts = [a * b for a, b in zip(weights, downstream)]
+dh = sum(parts)
+print(f&quot;Вклады {parts[0]:.1f} и {parts[1]:.1f}, сумма {dh:.1f}&quot;)
+for s in (0.6, -0.6):
+    ds = dh if s &gt; 0 else 0.0
+    print(f&quot;s {s:.1f}, производная {ds:.1f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Вклады -0.8 и -0.3, сумма -1.1
+s 0.6, производная -1.1
+s -0.6, производная 0.0
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Один вес и два заказа</h2>
+<p>У заказа 307 второй скрытый нейрон неактивен, его вклад нулевой. У заказа 301 производная по z с учётом среднего равна p/2, поскольку y = 0. Вес от второго нейрона к выходу равен -1, а наклон ReLU равен 1. Значит, производная по второй скрытой сумме равна -p/2. Умножаем на x₁ = 0,5 и получаем вклад -p/4 ≈ -0,055675. Это первая строка и второй столбец dW.</p>
+<p class="listing">Проверка вклада каждой строки <span>(Ответы/07-weight-contributions.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+X = np.array([[2.0, 1.0], [0.5, 0.0]])
+y = np.array([1.0, 0.0])
+W = np.array([[0.5, -0.5], [1.0, -0.5]])
+b, v = np.array([-1.0, 0.5]), np.array([1.0, -1.0])
+S = X @ W + b
+z = np.maximum(S, 0) @ v - 1
+p = 1 / (1 + np.exp(-z))
+dz = (p - y) / len(y)
+dS = np.where(S &gt; 0, dz[:, None] * v, 0.0)
+parts = X[:, 0] * dS[:, 1]
+dW = X.T @ dS
+print(&quot;Вклады&quot;, parts.round(6).tolist())
+print(&quot;Матрица&quot;, dW.round(6).tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Вклады [0.0, -0.055675]
+Матрица [[-0.5, -0.055675], [-0.25, 0.0]]
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Другая метка в пакете</h2>
+<p>Прямой проход оставляет вероятности 0,5 и 0,222700 при тех же параметрах. Для заказа 301 теперь берём -ln(p) ≈ 1,501929. Его потеря увеличилась на 1,25, а средняя на 1,25 / 2 = 0,625 и стала примерно 1,097538. Градиент веса от x₁ ко второму нейрону равен -(p - 1)/4 ≈ 0,194325. Раньше он был отрицательным. Изменилась метка, поэтому обучение теперь толкает прогноз второго заказа в другую сторону.</p>
+<p class="listing">Потеря и градиент до и после смены метки <span>(Ответы/08-batch-label.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+z = np.array([0.0, -1.25])
+p = 1 / (1 + np.exp(-z))
+for y in (np.array([1.0, 0.0]), np.array([1.0, 1.0])):
+    loss = np.logaddexp(0, (1 - 2 * y) * z).mean()
+    dz = (p - y) / len(y)
+    gradient = 0.5 * (-1) * dz[1]
+    print(f&quot;Метка 301 {y[1]:.0f}, потеря {loss:.6f}&quot;)
+    print(f&quot;Градиент выбранного веса {gradient:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Метка 301 0, потеря 0.472538
+Градиент выбранного веса -0.055675
+Метка 301 1, потеря 1.097538
+Градиент выбранного веса 0.194325
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

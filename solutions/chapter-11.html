@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 11. Свёрточные сети | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 11. Свёрточные сети</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-11.zip" download="Книга - глава 11 свёрточные сети.zip">Скачать архив главы 11</a></p>
+
+<article id="task-01"><h2>Задание 1. Порядок осей у RGB</h2>
+<p>В исходной форме (2, 2, 2, 3) ось каналов имеет индекс 3. Метод permute(0, 3, 1, 2) ставит её сразу после оси изображений. Получаем (2, 3, 2, 2). Взяв [:, :, 0, 0], выбираем первые пиксели всех картинок и все их каналы. С делением на 255 красный становится [1, 0, 0], зелёный [0, 1, 0].</p>
+<p class="listing">Перестановка осей и проверка пикселей <span>(Ответы/01-rgb-layout.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+
+images = torch.zeros(2, 2, 2, 3, dtype=torch.int64)
+images[0, 0, 0, 0] = 255
+images[1, 0, 0, 1] = 255
+X = images.permute(0, 3, 1, 2).float() / 255
+print(&quot;Входная форма&quot;, tuple(images.shape))
+print(&quot;Форма PyTorch&quot;, tuple(X.shape))
+print(&quot;Первые пиксели&quot;, X[:, :, 0, 0].tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Входная форма (2, 2, 2, 3)
+Форма PyTorch (2, 3, 2, 2)
+Первые пиксели [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Горизонтальная граница</h2>
+<p>В каждой строке картинки соседние пиксели равны. У исходного ядра веса -1 и 1 в строке, поэтому их вклады взаимно гасятся. Все три отклика вдоль левого края нулевые, как и остальные. У повёрнутого ядра верхние веса -1, нижние 1. В окне на границе получаем (-1) × 0 + (-1) × 0 + 1 × 1 + 1 × 1 = 2. Средняя строка карты заполнена двойками. Над ней и под ней окна однородные, поэтому там нули.</p>
+<p class="listing">Один вход и два направления фильтра <span>(Ответы/02-horizontal-boundary.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch.nn import functional as F
+
+X = torch.tensor([[0.0] * 4, [0.0] * 4, [1.0] * 4, [1.0] * 4])
+X = X.reshape(1, 1, 4, 4)
+vertical = torch.tensor([[-1.0, 1.0], [-1.0, 1.0]])
+horizontal = torch.tensor([[-1.0, -1.0], [1.0, 1.0]])
+first = F.conv2d(X, vertical.reshape(1, 1, 2, 2))
+second = F.conv2d(X, horizontal.reshape(1, 1, 2, 2))
+print(&quot;Первый фильтр, левый край&quot;, first[0, 0, :, 0].tolist())
+print(&quot;Второй фильтр&quot;)
+for row in second[0, 0].tolist():
+    print(row)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Первый фильтр, левый край [0.0, 0.0, 0.0]
+Второй фильтр
+[0.0, 0.0, 0.0]
+[2.0, 2.0, 2.0]
+[0.0, 0.0, 0.0]
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Шаг на прямоугольной картинке</h2>
+<p>С дополнением высота карты равна целой части (6 + 2 - 3) / 2 плюс 1, то есть 2 + 1 = 3. По ширине (7 + 2 - 3) / 2 + 1 = 4. Без дополнения высота равна целой части (6 - 3) / 2 плюс 1, то есть 1 + 1 = 2. Ширина (7 - 3) / 2 + 1 = 3. Остаток 0,5 отбрасываем только при расчёте высоты. В последней строке может не хватить места, чтобы начать новое окно с шагом 2.</p>
+<p class="listing">Формула размера для двух осей <span>(Ответы/03-rectangular-shape.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch.nn import functional as F
+
+X = torch.zeros(1, 1, 6, 7)
+weights = torch.ones(1, 1, 3, 3)
+for padding in (1, 0):
+    manual = tuple((side + 2 * padding - 3) // 2 + 1 for side in (6, 7))
+    computed = F.conv2d(X, weights, stride=2, padding=padding)
+    print(f&quot;Дополнение {padding}, вручную {manual}, PyTorch {tuple(computed.shape[-2:])}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Дополнение 1, вручную (3, 4), PyTorch (3, 4)
+Дополнение 0, вручную (2, 3), PyTorch (2, 3)
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Размеры и параметры слоя</h2>
+<p>Шесть фильтров дают шесть карт на каждую из пяти картинок. Окно 3 × 3 с дополнением 1 и шагом 1 сохраняет высоту и ширину 8. Форма выхода (5, 6, 8, 8). У каждого фильтра 3 × 3 × 3 = 27 весов, всего 6 × 27 = 162. Смещений по одному на выходной канал, поэтому 162 + 6 = 168 параметров.</p>
+<p class="listing">Число обучаемых значений с двумя настройками <span>(Ответы/04-count-parameters.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+X = torch.zeros(5, 3, 8, 8)
+for use_bias in (True, False):
+    layer = nn.Conv2d(3, 6, 3, padding=1, bias=use_bias)
+    count = sum(parameter.numel() for parameter in layer.parameters())
+    print(f&quot;Смещение {use_bias}, форма {tuple(layer(X).shape)}, параметров {count}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Смещение True, форма (5, 6, 8, 8), параметров 168
+Смещение False, форма (5, 6, 8, 8), параметров 162
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Локальный и глобальный максимум</h2>
+<p>После ReLU в четвёртой строке второй столбец стал нулём. Нижнее левое окно теперь содержит 2, 0, 1 и 0. Его максимум равен 2. Остальные окна дают 2 и 3 в верхнем ряду, 1 справа в нижнем. Карта пулинга [[2, 3], [2, 1]]. Максимум всей карты равен 3. Так AdaptiveMaxPool2d(1) получает одно число на канал.</p>
+<p class="listing">Две ширины окна для одной карты <span>(Ответы/05-pool-two-ways.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+X = torch.tensor([[-1.0, 2.0, 0.0, 1.0], [0.0, 1.0, 3.0, 0.0],
+                  [2.0, 0.0, -2.0, 1.0], [1.0, -4.0, 0.0, 0.0]])
+active = X.reshape(1, 1, 4, 4).relu()
+local_pool = nn.MaxPool2d(2, stride=2)
+local = local_pool(active)
+global_pool = nn.AdaptiveMaxPool2d(1)
+whole = global_pool(active)
+print(&quot;После ReLU&quot;)
+for row in active[0, 0].tolist():
+    print(row)
+print(&quot;Локально&quot;, local[0, 0].tolist())
+print(&quot;Глобально&quot;, whole.item())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">После ReLU
+[0.0, 2.0, 0.0, 1.0]
+[0.0, 1.0, 3.0, 0.0]
+[2.0, 0.0, 0.0, 1.0]
+[1.0, 0.0, 0.0, 0.0]
+Локально [[2.0, 3.0], [2.0, 1.0]]
+Глобально 3.0
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Сдвиг логитов</h2>
+<p>В обеих строках первый логит выше второго на 2. Для класса 1 вероятность равна e⁻¹ / (e¹ + e⁻¹) = 1 / (e² + 1) ≈ 0,119203. При переходе к [6, 4] общий множитель e⁵ сократится в softmax, а порядок оценок сохранится. Прогнозируем класс 0 в обеих строках. При истине 1 потеря равна -ln(0,119203) ≈ 2,126928 для каждого примера.</p>
+<p class="listing">Проверка вероятностей, классов и отдельных потерь <span>(Ответы/06-shifted-logits.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+z = torch.tensor([[1.0, -1.0], [6.0, 4.0]])
+y = torch.tensor([1, 1])
+probabilities = z.softmax(dim=1)[:, 1]
+criterion = nn.CrossEntropyLoss(reduction=&quot;none&quot;)
+losses = criterion(z, y)
+print(&quot;Класс 1&quot;, [round(p, 6) for p in probabilities.tolist()])
+print(&quot;Прогнозы&quot;, z.argmax(dim=1).tolist())
+print(&quot;Потери&quot;, [round(loss, 6) for loss in losses.tolist()])
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Класс 1 [0.119203, 0.119203]
+Прогнозы [0, 0]
+Потери [2.126928, 2.126928]
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Градиент общего веса</h2>
+<p>Обозначим вес через w. Ядро 1 × 1 умножает каждый пиксель на w. При нулевых целях средний квадрат ошибки равен (w² + 4w² + 0 + w²) / 4 = 1,5w². Производная равна 3w, то есть 3 при w = 1. После шага получаем w = 1 - 0,1 × 3 = 0,7. Потеря уменьшится с 1,5 до 1,5 × 0,7² = 0,735.</p>
+<p class="listing">Одно обновление свёрточного веса <span>(Ответы/07-shared-weight-gradient.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+X = torch.tensor([[[[1.0, 2.0], [0.0, -1.0]]]])
+target = torch.zeros_like(X)
+layer = nn.Conv2d(1, 1, 1, bias=False)
+with torch.no_grad():
+    layer.weight.fill_(1.0)
+opt = torch.optim.SGD(layer.parameters(), lr=0.1)
+criterion = nn.MSELoss()
+opt.zero_grad()
+loss = criterion(layer(X), target)
+loss.backward()
+print(f&quot;Потеря {loss.item():.3f}, градиент {layer.weight.grad.item():.3f}&quot;)
+opt.step()
+with torch.inference_mode():
+    after = criterion(layer(X), target)
+print(f&quot;Вес {layer.weight.item():.3f}, потеря после {after.item():.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Потеря 1.500, градиент 3.000
+Вес 0.700, потеря после 0.735
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Какие положения попали в тест</h2>
+<p>В обучении встречаются позиции 2, 3, 4 и 5, в тесте 1 и 6. Обычная строка фона даёт сумму не больше 8 × 0,15 = 1,2, а строка с полосой не меньше 8 × 0,60 = 4,8. Так же считаем суммы столбцов для вертикальной полосы. Маска y == 0 выбирает нужные изображения, argmax находит индекс наибольшей суммы. Постоянный прогноз класса 0 совпадает с 16 из 32 меток теста.</p>
+<p>В этой программе __file__ содержит путь к файлу решения. resolve даёт полный путь, а два обращения к parent поднимают нас из «Ответы» в папку главы. Затем добавляем «Примеры» в путь поиска модулей и импортируем patterns обычной командой import. Оператор &amp; для множеств возвращает их общие элементы.</p>
+<p class="listing">Проверка генерации и простой прогноз <span>(Ответы/08-test-positions.py)</span></p><pre tabindex="0" aria-label="Код"><code>from pathlib import Path
+import sys
+
+chapter = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(chapter / &quot;Примеры&quot;))
+from patterns import make_patterns
+
+def locations(images, labels):
+    rows = images[labels == 0, 0].sum(dim=2).argmax(dim=1)
+    cols = images[labels == 1, 0].sum(dim=1).argmax(dim=1)
+    return set(rows.tolist() + cols.tolist())
+
+train = make_patterns(48, seed=31)
+test = make_patterns(16, seed=101, positions=(1, 6))
+train_places = locations(*train)
+test_places = locations(*test)
+y = test[1]
+print(&quot;Обучение&quot;, sorted(train_places))
+print(&quot;Тест&quot;, sorted(test_places))
+print(&quot;Общие позиции&quot;, sorted(train_places &amp; test_places))
+print(f&quot;Постоянный класс 0: {(y == 0).sum().item()}/{len(y)}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Обучение [2, 3, 4, 5]
+Тест [1, 6]
+Общие позиции []
+Постоянный класс 0: 16/32
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

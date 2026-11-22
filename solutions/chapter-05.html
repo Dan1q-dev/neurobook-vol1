@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 5. Постановка задачи и проверка качества модели | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 5. Постановка задачи и проверка качества модели</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-05.zip" download="Книга - глава 5 проверка качества.zip">Скачать архив главы 5</a></p>
+<p>Программы решений лежат в папке «Ответы». Для листингов с CSV запускайте Python из основной папки архива, как при работе с примерами главы.</p>
+<article id="task-01"><h2>Задание 1. Признаки и метка опоздания</h2>
+<p>Расстояние, заявленная масса и обещанное время известны при оформлении. Из них можно построить признаки. После доставки сравниваем фактическое прибытие с обещанным. Метка равна 1 при строгом превышении срока, иначе 0. Прибытие точно в обещанное время относится к классу 0. Фактическое время здесь используется для разметки истории.</p>
+<p class="listing">Метки для трёх случаев <span>(Ответы/01-late-label.py)</span></p><pre tabindex="0" aria-label="Код"><code>promised = 720
+arrivals = [710, 720, 735]
+labels = [int(arrival &gt; promised) for arrival in arrivals]
+print(&quot;Метки опоздания&quot;, labels)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Метки опоздания [0, 0, 1]
+</pre>
+<p>Часы в примере записаны числом минут от начала одного дня. Обещанный срок 720 означает 12:00. Сравнение arrival &gt; promised даёт логическое значение, а int превращает его в 0 или 1. Если доставка переходит на следующий день, сравнивать нужно полные дату и время.</p>
+</article>
+<article id="task-02"><h2>Задание 2. Новые границы по дням</h2>
+<p>В train девять заказов 201-209. В validation четыре заказа 210-213. В test пять заказов 214-218. В нашем файле на каждый день приходится одна строка, поэтому число записей равно числу дней в диапазоне. Сумма 9 + 4 + 5 равна 18.</p>
+<p class="listing">Проверка числа строк и номеров <span>(Ответы/02-new-time-split.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+orders = pd.read_csv(&quot;orders-quality.csv&quot;)
+day = orders[&quot;day&quot;]
+parts = {
+    &quot;train&quot;: orders.loc[day &lt;= 9],
+    &quot;validation&quot;: orders.loc[day.between(10, 13)],
+    &quot;test&quot;: orders.loc[day &gt;= 14],
+}
+for name, part in parts.items():
+    numbers = part[&quot;order_id&quot;]
+    print(name, len(part), numbers.min(), numbers.max())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">train 9 201 209
+validation 4 210 213
+test 5 214 218
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Повторяющийся клиент</h2>
+<p>Клиент 31 оформил заказы 201, 205, 211 и 217 в дни 1, 5, 11 и 17. При исходном делении по времени первые два попадают в train, 211 попадает в validation, 217 в test. При проверке на новом клиенте все четыре записи 31 должны быть в группе проверки. В отдельном упражнении на групповой отбор возьмём остальных клиентов как кандидатов для обучения. Если нужна и проверка на будущих датах, дополнительно ограничим обучающие дни.</p>
+<p class="listing">Проверочная группа клиента 31 <span>(Ответы/03-customer-holdout.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+orders = pd.read_csv(&quot;orders-quality.csv&quot;)
+is_31 = orders[&quot;customer_id&quot;] == 31
+held_out = orders.loc[is_31]
+other = orders.loc[~is_31]
+
+print(&quot;Заказы 31&quot;, held_out[&quot;order_id&quot;].tolist())
+print(&quot;Дни&quot;, held_out[&quot;day&quot;].tolist())
+print(&quot;Заказов клиента 31 у остальных&quot;,
+      (other[&quot;customer_id&quot;] == 31).sum())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Заказы 31 [201, 205, 211, 217]
+Дни [1, 5, 11, 17]
+Заказов клиента 31 у остальных 0
+</pre>
+<p>Знак ~ меняет True на False и наоборот в маске pandas. С помощью is_31 берём записи одного клиента, через ~is_31 получаем все остальные.</p>
+<p>Во втором случае обучение содержит дни 1, 2 и 3. Модель уже видела клиентов А и Б. Дни 4 и 6 подходят для теста, потому что клиенты В и Г новые и оба заказа оформлены после обучения. День 5 тоже будущий, но клиент Б уже встречался. Этот заказ пригодится для отдельной проверки на повторных клиентах. В ответе должны быть указаны граница по времени и списки клиентов обеих частей.</p>
+</article>
+<article id="task-04"><h2>Задание 4. Сравнение по двум метрикам</h2>
+<p>Ошибки A по модулю равны 2, 2, 2 и 2. Его MAE и RMSE равны 2. У B теперь ошибки 0, 0, 0 и 4. MAE равна 4 / 4 = 1, RMSE равна √(16 / 4) = 2. По MAE выигрывает B. По RMSE результаты равны. При равенстве по основной метрике можно заранее договориться выбирать более простое правило или смотреть согласованный дополнительный показатель.</p>
+<p class="listing">Проверка после изменения прогноза <span>(Ответы/04-new-regression-errors.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import sqrt
+
+actual = [10, 15, 20, 25]
+rules = {&quot;A&quot;: [12, 13, 22, 23], &quot;B&quot;: [10, 15, 20, 29]}
+for name, predicted in rules.items():
+    errors = [abs(p - y) for y, p in zip(actual, predicted)]
+    mae = sum(errors) / len(errors)
+    rmse = sqrt(sum(e ** 2 for e in errors) / len(errors))
+    print(name, &quot;ошибки&quot;, errors)
+    print(f&quot;MAE {mae:.2f}, RMSE {rmse:.2f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">A ошибки [2, 2, 2, 2]
+MAE 2.00, RMSE 2.00
+B ошибки [0, 0, 0, 4]
+MAE 1.00, RMSE 2.00
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Базовая цена по пяти дням</h2>
+<p>Цены дней 1-5 после сортировки идут в порядке 5, 8, 11, 14 и 15. Число посередине равно 11, это медиана. На четырёх заказах validation модули отклонений равны 3, 8, 3 и 10. MAE равна 24 / 4 = 6. Ответы validation используются после выбора константы, чтобы посчитать ошибку.</p>
+<p class="listing">Константа и её ошибка <span>(Ответы/05-train-median.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+orders = pd.read_csv(&quot;orders-quality.csv&quot;)
+train = orders.loc[orders[&quot;day&quot;] &lt;= 5]
+val = orders.loc[orders[&quot;day&quot;].between(11, 14)]
+constant = train[&quot;price&quot;].median()
+errors = (val[&quot;price&quot;] - constant).abs()
+print(&quot;Константа&quot;, constant)
+print(&quot;Ошибки&quot;, errors.tolist())
+print(&quot;MAE&quot;, errors.mean())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Константа 11.0
+Ошибки [3.0, 8.0, 3.0, 10.0]
+MAE 6.0
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Одно пропущенное опоздание</h2>
+<p>TP = 1, FN = 1, FP = 1 и TN = 17. Значит, accuracy равна (1 + 17) / 20 = 0,90. Precision равна 1 / (1 + 1) = 0,50, recall равна 1 / (1 + 1) = 0,50, F1 равна 2 / (2 + 1 + 1) = 0,50. Правило «всегда 0» тоже даёт 0,90 по accuracy, но при нём пропущены оба опоздания.</p>
+<p class="listing">Проверка новых предупреждений <span>(Ответы/06-late-metrics.py)</span></p><pre tabindex="0" aria-label="Код"><code>actual = [1, 1] + [0] * 18
+predicted = [1, 0, 1] + [0] * 17
+matrix = [[0, 0], [0, 0]]
+for answer, prediction in zip(actual, predicted):
+    matrix[answer][prediction] += 1
+
+tn, fp = matrix[0]
+fn, tp = matrix[1]
+print(&quot;TN, FP, FN, TP&quot;, tn, fp, fn, tp)
+print(f&quot;Accuracy {(tn + tp) / len(actual):.2f}&quot;)
+print(f&quot;Precision {tp / (tp + fp):.2f}&quot;)
+print(f&quot;Recall {tp / (tp + fn):.2f}&quot;)
+print(f&quot;F1 {2 * tp / (2 * tp + fp + fn):.2f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">TN, FP, FN, TP 17 1 1 1
+Accuracy 0.90
+Precision 0.50
+Recall 0.50
+F1 0.50
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Стоимость ложных предупреждений и пропусков</h2>
+<p>У исходной модели три ложных предупреждения и ноль пропусков. Стоимость 3 × 1 + 0 × 5 = 3. У модели из задания 6 одно ложное предупреждение и один пропуск, итог 6. У правила «всегда 0» нет предупреждений и есть два пропуска, итог 10. При заданных издержках на этих 20 заказах исходная модель даёт наименьшую стоимость.</p>
+<p class="listing">Сравнение по издержкам <span>(Ответы/07-error-cost.py)</span></p><pre tabindex="0" aria-label="Код"><code>counts = {
+    &quot;Исходная модель&quot;: (3, 0),
+    &quot;Модель из задания 6&quot;: (1, 1),
+    &quot;Всегда 0&quot;: (0, 2),
+}
+for name, (fp, fn) in counts.items():
+    cost = fp + 5 * fn
+    print(name, cost)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Исходная модель 3
+Модель из задания 6 6
+Всегда 0 10
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Разбор ошибки по типу заказа</h2>
+<p>Обычные заказы 215 и 218 дали ошибки 1 и 1, их MAE равна 1. Срочные 216 и 217 дали ошибки 1 и 3, их MAE равна 2. В каждой группе всего два заказа. Один заказ 217 заметно влияет на среднее. Вывод для этого опыта ограничен этими четырьмя заказами. Для уверенного сравнения типов нужно собрать больше новых примеров каждого типа и снова оценить зафиксированное правило.</p>
+<p class="listing">Проверка двух групп на тесте <span>(Ответы/08-errors-by-service.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+orders = pd.read_csv(&quot;orders-quality.csv&quot;)
+test = orders.loc[orders[&quot;day&quot;] &gt;= 15].copy()
+express = test[&quot;service&quot;] == &quot;express&quot;
+predicted = 3 * test[&quot;distance_km&quot;] + 2 + express * 4
+test[&quot;error&quot;] = (test[&quot;price&quot;] - predicted).abs()
+for service in (&quot;standard&quot;, &quot;express&quot;):
+    group = test.loc[test[&quot;service&quot;] == service, &quot;error&quot;]
+    print(service, &quot;заказов&quot;, len(group), &quot;MAE&quot;, group.mean())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">standard заказов 2 MAE 1.0
+express заказов 2 MAE 2.0
+</pre>
+<p>Надбавку 4 берём из уже проверенного расчёта на train. Метод copy создаёт отдельную таблицу, в которую добавляем столбец ошибок. Затем для каждого типа выбираем его строки и берём среднее модулей. Общая MAE равна (1 + 1 + 1 + 3) / 4 = 1,5.</p>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

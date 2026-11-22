@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 10. Обучение сети в PyTorch | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 10. Обучение сети в PyTorch</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-10.zip" download="Книга - глава 10 обучение в PyTorch.zip">Скачать архив главы 10</a></p>
+
+<article id="task-01"><h2>Задание 1. Тип и форма меток</h2>
+<p>Передаём столбец из 1,0 и 0,0. Для первого заказа вероятность p₁ = 0,5 и потеря -ln(p₁) ≈ 0,693147. Для второго p₂ ≈ 0,222700 и потеря -ln(1 - p₂) ≈ 0,251929. Средняя потеря около (0,693147 + 0,251929) / 2 = 0,472538. Метод float() приводит метки к float32, а unsqueeze(1) добавляет ось столбцов.</p>
+<p class="listing">Подготовка меток для BCEWithLogitsLoss <span>(Ответы/01-target-shape.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+z = torch.tensor([[0.0], [-1.25]])
+labels = torch.tensor([1, 0])
+y = labels.float().unsqueeze(1)
+print(&quot;До&quot;, tuple(labels.shape), labels.dtype)
+print(&quot;После&quot;, tuple(y.shape), y.dtype)
+criterion = nn.BCEWithLogitsLoss()
+loss = criterion(z, y)
+print(f&quot;Средняя потеря {loss.item():.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">До (2,) torch.int64
+После (2, 1) torch.float32
+Средняя потеря 0.472538
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Накопление градиентов</h2>
+<p>Один вызов backward даёт градиент -6, два дают -12. При очистке перед новым шагом вес станет 2 - 0,1 × (-6) = 2,6, потеря (3 × 2,6 - 7)² = 0,64. Если использовать накопленное значение -12, вес станет 3,2, потеря (3 × 3,2 - 7)² = 6,76. В этой задаче лишний градиент удвоил шаг и перенёс вес слишком далеко.</p>
+<p class="listing">Два шага из одного начального веса <span>(Ответы/02-clear-gradient.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+
+w = torch.tensor(2.0, requires_grad=True)
+for steps in (1, 2):
+    w.grad = None
+    for _ in range(steps):
+        ((3 * w - 7) ** 2).backward()
+    with torch.no_grad():
+        new_w = w - 0.1 * w.grad
+        new_loss = (3 * new_w - 7) ** 2
+    print(f&quot;Вызовов {steps}, градиент {w.grad.item():.1f}&quot;)
+    print(f&quot;Новый вес {new_w.item():.1f}, потеря {new_loss.item():.2f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Вызовов 1, градиент -6.0
+Новый вес 2.6, потеря 0.64
+Вызовов 2, градиент -12.0
+Новый вес 3.2, потеря 6.76
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Обратный проход при метке 0</h2>
+<p>Без обновления весов вероятность остаётся 0,5. Производная потери по логиту теперь p - y = 0,5. Для выходных весов умножаем 0,5 на скрытые значения 1 и 0, для выходного смещения берём 0,5. Для первого скрытого нейрона сигнал равен 0,5 × 1 = 0,5. У второго ReLU закрыт, его градиенты нулевые. Умножаем 0,5 на входы 2 и 1 и получаем 1 и 0,5. В nn.Linear у веса от второго входа к первому скрытому нейрону индекс [0, 1].</p>
+<p class="listing">Градиенты слоёв при новой метке <span>(Ответы/03-zero-label.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+model = nn.Sequential(nn.Linear(2, 2), nn.ReLU(), nn.Linear(2, 1))
+with torch.no_grad():
+    model[0].weight.copy_(torch.tensor([[0.5, 1.0], [-0.5, -0.5]]))
+    model[0].bias.copy_(torch.tensor([-1.0, 0.5]))
+    model[2].weight.copy_(torch.tensor([[1.0, -1.0]]))
+    model[2].bias.fill_(-1.0)
+z = model(torch.tensor([[2.0, 1.0]]))
+criterion = nn.BCEWithLogitsLoss()
+loss = criterion(z, torch.tensor([[0.0]]))
+loss.backward()
+print(&quot;Первый слой&quot;, model[0].weight.grad.tolist(),
+      model[0].bias.grad.tolist())
+print(&quot;Выходной слой&quot;, model[2].weight.grad.tolist(),
+      model[2].bias.grad.tolist())
+print(&quot;Вес [0, 1]&quot;, model[0].weight.grad[0, 1].item())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Первый слой [[1.0, 0.5], [0.0, 0.0]] [0.5, 0.0]
+Выходной слой [[0.5, 0.0]] [0.5]
+Вес [0, 1] 0.5
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Разный размер пакетов</h2>
+<p>Суммарная потеря по пяти строкам равна 2 × 0,2 + 2 × 0,4 + 1 × 0,8 = 2. Делим на 5 и получаем 0,4. Простое среднее (0,2 + 0,4 + 0,8) / 3 ≈ 0,466667 даёт слишком большой вклад одиночной строке.</p>
+<p class="listing">Средняя по строкам и средняя по пакетам <span>(Ответы/04-average-loss.py)</span></p><pre tabindex="0" aria-label="Код"><code>sizes = [2, 2, 1]
+means = [0.2, 0.4, 0.8]
+total = sum(size * mean for size, mean in zip(sizes, means))
+print(f&quot;По строкам {total / sum(sizes):.6f}&quot;)
+print(f&quot;По пакетам {sum(means) / len(means):.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">По строкам 0.400000
+По пакетам 0.466667
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Логит и сигмоида</h2>
+<p>Для правильной метки 1 и логита 0 получаем -ln(0,5) ≈ 0,693147. Когда передаём вероятность 0,5, функция воспринимает её как логит и внутри расчёта использует сигмоиду от 0,5, то есть примерно 0,622459. Потеря уменьшается до 0,474077 из-за подмены входа функции. Прогноз исходной модели был 0,5.</p>
+<p class="listing">Что происходит при повторной сигмоиде <span>(Ответы/05-logits-vs-probabilities.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+z, y = torch.tensor([[0.0]]), torch.tensor([[1.0]])
+criterion = nn.BCEWithLogitsLoss()
+print(f&quot;Подали логит {criterion(z, y).item():.6f}&quot;)
+print(f&quot;Подали вероятность {criterion(torch.sigmoid(z), y).item():.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Подали логит 0.693147
+Подали вероятность 0.474077
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Проверка Dropout</h2>
+<p>При обучении каждое сохранённое значение равно 1 / (1 - 0,25) = 4 / 3. В eval все восемь значений равны 1 и сумма равна 8. В этом примере выход сохраняет requires_grad=True, если выполняем eval с обычной записью операций. Внутри inference_mode получаем requires_grad=False при обычных операциях. Dropout в eval может напрямую вернуть вход, поэтому в коде берём сумму внутри блока, чтобы проверить флаг у результата новой операции.</p>
+<p class="listing">Dropout с другой вероятностью <span>(Ответы/06-check-dropout.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+torch.manual_seed(7)
+layer = nn.Dropout(0.25)
+x = torch.ones(8, requires_grad=True)
+active = layer(x)
+nonzero = active[active != 0]
+print(&quot;Значения train&quot;, sorted({round(v, 6) for v in nonzero.tolist()}))
+layer.eval()
+total = layer(x).sum()
+with torch.inference_mode():
+    checked = layer(x).sum()
+print(&quot;eval&quot;, total.item(), total.requires_grad)
+print(&quot;eval и inference_mode&quot;, checked.item(), checked.requires_grad)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Значения train [1.333333]
+eval 8.0 True
+eval и inference_mode 8.0 False
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Лучшая эпоха из таблицы</h2>
+<p>По валидации сохраняем эпоху 62 с потерей около 0,386372. На эпохе 120 обучающая потеря уменьшилась примерно на 0,017807, а валидационная выросла примерно на 0,005893. Сортировать таблицу целиком не нужно. Функция min проходит по строкам и сравнивает их по val_loss, преобразованной в число. Файл содержит значения из проверочного запуска примера 07.</p>
+<p>lambda row: float(row[&quot;val_loss&quot;]) обозначает короткую функцию без имени. Она получает строку и возвращает её потерю числом. min использует это число как критерий сравнения строк.</p>
+<p>В отдельном опыте на рисунке минимум на эпохе 12. Падение train с 0,4007 до 0,0013 сопровождается ростом val с 0,4874 до 2,1993. На заказах рост val намного меньше, а валидация состоит из восьми строк. Это даёт более слабое свидетельство.</p>
+<p class="listing">Проверка лучшей и последней строк <span>(Ответы/07-find-best-epoch.py)</span></p><pre tabindex="0" aria-label="Код"><code>from csv import DictReader
+
+with open(&quot;learning-curve.csv&quot;, encoding=&quot;utf-8&quot;, newline=&quot;&quot;) as file:
+    rows = list(DictReader(file))
+best = min(rows, key=lambda row: float(row[&quot;val_loss&quot;]))
+for row in (best, rows[-1]):
+    train = float(row[&quot;train_loss&quot;])
+    val = float(row[&quot;val_loss&quot;])
+    print(f&quot;Эпоха {row[&#x27;epoch&#x27;]}, train {train:.6f}, val {val:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Эпоха 62, train 0.414776, val 0.386372
+Эпоха 120, train 0.396969, val 0.392265
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Прогнозы пакетом и по одному</h2>
+<p>После деления расстояний на 2 получаем строки [2, 1] и [1, 1]. Каждый заказ проходит сеть независимо. torch.allclose сравнивает числа с небольшим допуском, поскольку порядок вычислений может повлиять на округление. Вероятности около 0,707615 и 0,118918. При пороге 0,5 классы 1 и 0.</p>
+<p class="listing">Два одинаковых способа получить прогноз <span>(Ответы/08-predict-two-orders.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+saved = torch.load(&quot;delivery-ch10.pt&quot;, map_location=&quot;cpu&quot;, weights_only=True)
+width = saved[&quot;hidden_size&quot;]
+model = nn.Sequential(nn.Linear(len(saved[&quot;columns&quot;]), width),
+                      nn.ReLU(), nn.Linear(width, 1))
+model.load_state_dict(saved[&quot;state_dict&quot;])
+model.eval()
+orders = [{&quot;distance_km&quot;: 4.0, &quot;rush&quot;: 1.0},
+          {&quot;distance_km&quot;: 2.0, &quot;rush&quot;: 1.0}]
+for order in orders:
+    order[&quot;distance_km&quot;] /= saved[&quot;scale&quot;]
+X = torch.tensor([[order[name] for name in saved[&quot;columns&quot;]] for order in orders])
+with torch.inference_mode():
+    all_at_once = torch.sigmoid(model(X)).flatten()
+    one_by_one = torch.cat([torch.sigmoid(model(row[None])) for row in X]).flatten()
+print(&quot;Вероятности&quot;, [round(p, 6) for p in all_at_once.tolist()])
+print(&quot;Совпадают&quot;, torch.allclose(all_at_once, one_by_one))
+print(&quot;Классы&quot;, (all_at_once &gt;= saved[&quot;threshold&quot;]).int().tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Вероятности [0.707615, 0.118918]
+Совпадают True
+Классы [1, 0]
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

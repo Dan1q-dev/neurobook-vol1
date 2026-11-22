@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 12. Внимание и трансформеры | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 12. Внимание и трансформеры</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-12.zip" download="Книга - глава 12 внимание и трансформеры.zip">Скачать архив главы 12</a></p>
+
+<article id="task-01"><h2>Задание 1. Один токен в двух позициях</h2>
+<p>Оба «заказ» получают один номер 2 и одно вложение [0, 0, 1, 0]. Для первой позиции прибавляем [0, 0, 0, 0], для третьей [0, 0, 0, 2]. Отличается только четвёртая координата. Номера [2, 1, 2], средняя строка совпадает со строкой «везёт» в примере главы.</p>
+<p class="listing">Одинаковое вложение и разные входные строки <span>(Ответы/01-repeated-token.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+vocab = {&quot;курьер&quot;: 0, &quot;везёт&quot;: 1, &quot;заказ&quot;: 2}
+ids = [vocab[token] for token in &quot;заказ везёт заказ&quot;.split()]
+positions = np.zeros((3, 4))
+positions[:, 3] = np.arange(3)
+X = np.eye(3, 4)[ids] + positions
+print(&quot;Номера&quot;, ids)
+for row in X.tolist():
+    print(row)
+print(&quot;Различные координаты&quot;, (np.flatnonzero(X[0] != X[2]) + 1).tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Номера [2, 1, 2]
+[0.0, 0.0, 1.0, 0.0]
+[0.0, 1.0, 0.0, 1.0]
+[0.0, 0.0, 1.0, 2.0]
+Различные координаты [4]
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Первый запрос</h2>
+<p>Запрос [2, 0, 1, 0] даёт произведения 2, 1 и 4. После деления на √4 получаем оценки 1, 0,5 и 2. Сумма их экспонент около 2,718282 + 1,648721 + 7,389056 = 11,756059. Получаем веса около 0,231224, 0,140244 и 0,628532. Первая координата выхода равна удвоенной сумме первого и третьего весов, вторая удвоенной сумме второго и третьего. Итог [1,719511, 1,537552] с округлением после расчёта.</p>
+<p class="listing">Оценки, веса и выход для «курьер» <span>(Ответы/02-first-query.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+q = np.array([2.0, 0.0, 1.0, 0.0])
+K = np.array([[1, 0, 0, 0], [0, 1, 1, 0], [2, 2, 0, 1]])
+V = np.array([[2, 0], [0, 2], [2, 2]])
+scores = q @ K.T / np.sqrt(K.shape[1])
+terms = np.exp(scores - scores.max())
+weights = terms / terms.sum()
+print(&quot;Оценки&quot;, scores.tolist())
+print(&quot;Веса&quot;, weights.round(6).tolist())
+print(&quot;Выход&quot;, (weights @ V).round(6).tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Оценки [1.0, 0.5, 2.0]
+Веса [0.231224, 0.140244, 0.628532]
+Выход [1.719511, 1.537552]
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Большие оценки</h2>
+<p>В первой строке вычитаем 1002, во второй 2. Обе превращаются в [-2, -1, 0]. Экспоненты похожи на [0,135335, 0,367879, 1], их сумма около 1,503215. Поэтому веса обеих строк [0,090031, 0,244728, 0,665241]. Вычитание одного числа сохраняет отношения между экспонентами.</p>
+<p class="listing">Softmax после вычитания максимума <span>(Ответы/03-stable-softmax.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import exp
+
+def stable_softmax(scores):
+    largest = max(scores)
+    terms = [exp(value - largest) for value in scores]
+    return [term / sum(terms) for term in terms]
+
+for scores in ([1000, 1001, 1002], [0, 1, 2]):
+    weights = stable_softmax(scores)
+    print([round(value, 6) for value in weights])
+</code></pre>
+<p class="listing">Результат</p><pre class="output">[0.090031, 0.244728, 0.665241]
+[0.090031, 0.244728, 0.665241]
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Два ограничения сразу</h2>
+<p>Причинная маска разрешает первому запросу первый ключ, второму первые два, третьему все три. Маска дополнения закрывает весь третий столбец. Получаем строки [1, 0, 0], [1, 1, 0], [1, 1, 0]. Для третьего запроса остаются равные оценки 1 и 1. После деления каждой экспоненты на 2e веса равны [0,5, 0,5, 0]. При обучении результат служебной позиции исключаем из потери.</p>
+<p class="listing">Пересечение разрешённых пар <span>(Ответы/04-combine-masks.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+causal = np.tri(3, dtype=bool)
+real_keys = np.array([True, True, False])
+allowed = causal &amp; real_keys
+scores = np.array([1.0, 1.0, 4.0])
+masked = np.where(allowed[2], scores, -np.inf)
+terms = np.exp(masked - masked.max())
+for row in allowed.astype(int).tolist():
+    print(row)
+print(&quot;Веса третьей строки&quot;, (terms / terms.sum()).tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">[1, 0, 0]
+[1, 1, 0]
+[1, 1, 0]
+Веса третьей строки [0.5, 0.5, 0.0]
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Разная длина запросов и ключей</h2>
+<p>У каждого ключа две координаты, поэтому делитель √2. Число запросов равно 2, число ключей 3. Матрица оценок имеет форму (2, 3). Обозначим r = 1 / √2. Первые оценки [r, 0, r], вторые [0, r, r]. Если a = eʳ / (2eʳ + 1) ≈ 0,401112 и b = 1 / (2eʳ + 1) ≈ 0,197776, первая строка весов [a, b, a], вторая [b, a, a]. По значениям получаем [2a, a + b] и [a + b, 2a]. Форма выхода (2, 2).</p>
+<p class="listing">Два запроса обращаются к трём ключам <span>(Ответы/05-cross-attention.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+Q = np.array([[1.0, 0.0], [0.0, 1.0]])
+K = np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
+V = K.copy()
+scores = Q @ K.T / np.sqrt(K.shape[1])
+terms = np.exp(scores - scores.max(axis=1, keepdims=True))
+weights = terms / terms.sum(axis=1, keepdims=True)
+Y = weights @ V
+print(&quot;Форма оценок&quot;, scores.shape)
+print(&quot;Форма выхода&quot;, Y.shape)
+for row in Y.round(6).tolist():
+    print(row)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Форма оценок (2, 3)
+Форма выхода (2, 2)
+[0.802224, 0.598888]
+[0.598888, 0.802224]
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Поменяли только ключ</h2>
+<p>Запрос [0, 1] давал произведения 1 и 1. После замены второго ключа на [1, 0] получаем 1 и 0. Оценки после деления на √2 дают веса примерно 0,669762 и 0,330238. Значения остались [0, 1] и [1, 1], поэтому выход теперь [0,330238, 1]. До замены он был [0,5, 1].</p>
+<p class="listing">Как ключ влияет на взвешенную сумму <span>(Ответы/06-head-key-change.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import sqrt
+import torch
+
+q = torch.tensor([0.0, 1.0], dtype=torch.float64)
+V = torch.tensor([[0.0, 1.0], [1.0, 1.0]], dtype=torch.float64)
+new_keys = V.clone()
+new_keys[1, 1] = 0.0
+for label, K in ((&quot;До&quot;, V), (&quot;После&quot;, new_keys)):
+    weights = (K @ q / sqrt(2)).softmax(dim=0)
+    print(label, weights.numpy().round(6).tolist(),
+          (weights @ V).numpy().round(6).tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">До [0.5, 0.5] [0.5, 1.0]
+После [0.669762, 0.330238] [0.330238, 1.0]
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Нормировка и остаточное сложение</h2>
+<p>Среднее (1 + 3 + 1 + 3) / 4 = 2. Отклонения [-1, 1, -1, 1]. Среднее квадратов отклонений равно 1, поэтому деление на √(1 + 0) сохраняет эти четыре числа. Ветвь возвращает [-2, 2, -2, 2]. Остаточное сложение с x даёт [-1, 5, -1, 5]. В обычном LayerNorm к дисперсии прибавляют малое положительное eps, чтобы делитель оставался ненулевым даже на постоянном векторе. [4]</p>
+<p class="listing">Результат нормировки и сложения <span>(Ответы/07-layernorm-residual.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+from torch import nn
+
+x = torch.tensor([1.0, 3.0, 1.0, 3.0])
+norm = nn.LayerNorm(4, eps=0.0, elementwise_affine=False)
+normalized = norm(x)
+branch = 2 * normalized
+print(&quot;Нормировка&quot;, normalized.tolist())
+print(&quot;Ветвь&quot;, branch.tolist())
+print(&quot;Сумма&quot;, (x + branch).tolist())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Нормировка [-1.0, 1.0, -1.0, 1.0]
+Ветвь [-2.0, 2.0, -2.0, 2.0]
+Сумма [-1.0, 5.0, -1.0, 5.0]
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Следующий токен и будущие значения</h2>
+<p>Вход [0, 1, 2], цели [1, 2, 3]. Без маски у первого запроса три оценки 0, поэтому веса равны 1/3. Выход сначала (1 + 2 + 9) / 3 = 4, после изменения (1 + 2 + 12) / 3 = 5. С причинной маской первый запрос видит только первый ключ. Веса [1, 0, 0], выход 1 в обоих случаях. Значение на будущей позиции перестало влиять на текущий прогноз.</p>
+<p class="listing">Сдвиг целей и контроль утечки из будущего <span>(Ответы/08-mask-and-next-token.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+tokens = [0, 1, 2, 3]
+print(&quot;Вход&quot;, tokens[:-1], &quot;цели&quot;, tokens[1:])
+scores = np.zeros(3)
+masked = np.where([True, False, False], scores, -np.inf)
+full_terms, causal_terms = np.exp(scores), np.exp(masked)
+full = full_terms / full_terms.sum()
+causal = causal_terms / causal_terms.sum()
+for future in (9.0, 12.0):
+    V = np.array([1.0, 2.0, future])
+    print(f&quot;Будущее {future:.0f}, полный выход {full @ V:.1f}, с маской {causal @ V:.1f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Вход [0, 1, 2] цели [1, 2, 3]
+Будущее 9, полный выход 4.0, с маской 1.0
+Будущее 12, полный выход 5.0, с маской 1.0
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

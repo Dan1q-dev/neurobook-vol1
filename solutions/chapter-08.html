@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 8. Вероятность и классификация | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 8. Вероятность и классификация</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-08.zip" download="Книга - глава 8 вероятность и классификация.zip">Скачать архив главы 8</a></p>
+<p>Сначала сверяйте промежуточные числа. Программы из папки «Ответы» запускаются теми же командами, что и примеры. Запускайте последний листинг из папки с orders-late.csv.</p>
+<article id="task-01"><h2>Задание 1. Три разных знаменателя</h2>
+<p>Среди 12 коротких заказов опоздали 2, поэтому условная вероятность равна 2/12 = 1/6. Среди 6 опозданий короткими были 2, поэтому обратная условная вероятность равна 2/6 = 1/3. Среди 8 дальних заказов к сроку приехали 4, вероятность равна 4/8 = 1/2.</p>
+<p class="listing">Условие задаёт знаменатель <span>(Ответы/01-conditional.py)</span></p><pre tabindex="0" aria-label="Код"><code>short_late = 2
+short_total, all_late = 12, 6
+long_on_time, long_total = 4, 8
+print(f&quot;Опоздание среди коротких {short_late / short_total:.4f}&quot;)
+print(f&quot;Короткий среди опозданий {short_late / all_late:.4f}&quot;)
+print(f&quot;Вовремя среди дальних {long_on_time / long_total:.4f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Опоздание среди коротких 0.1667
+Короткий среди опозданий 0.3333
+Вовремя среди дальних 0.5000
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Две стороны сигмоиды</h2>
+<p>На 1 км z = -3 и p = 1 / (1 + exp(3)) ≈ 0,047426. На 7 км z = 3 и p ≈ 0,952574. Вероятности дополняют друг друга до 1. Сигмоида возрастает и равна 0,5 при z = 0, поэтому при t = 0,5 класс 1 начинается с x = 4 км, включая саму границу.</p>
+<p class="listing">Дальности по обе стороны порога <span>(Ответы/02-symmetric-sigmoid.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import exp
+
+for distance in (1, 4, 7):
+    z = distance - 4
+    p = 1 / (1 + exp(-z))
+    label = int(p &gt;= 0.5)
+    print(f&quot;{distance} км, z {z}, p {p:.6f}, класс {label}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">1 км, z -3, p 0.047426, класс 0
+4 км, z 0, p 0.500000, класс 1
+7 км, z 3, p 0.952574, класс 1
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Уверенность и потеря</h2>
+<p>При y = 1 потери равны -ln(0,9) ≈ 0,105361 и -ln(0,6) ≈ 0,510826. При y = 0 считаем -ln(0,1) ≈ 2,302585 и -ln(0,4) ≈ 0,916291. При пороге 0,5 оба прогноза дают класс 1. Вероятность 0,9 получает меньшую потерю при опоздании и большую, когда заказ прибывает к сроку.</p>
+<p class="listing">Четыре значения log loss <span>(Ответы/03-compare-losses.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import log
+
+for y in (1, 0):
+    for p in (0.9, 0.6):
+        correct = p if y == 1 else 1 - p
+        label = int(p &gt;= 0.5)
+        print(f&quot;y {y}, p {p:.1f}, класс {label}, потеря {-log(correct):.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">y 1, p 0.9, класс 1, потеря 0.105361
+y 1, p 0.6, класс 1, потеря 0.510826
+y 0, p 0.9, класс 1, потеря 2.302585
+y 0, p 0.6, класс 1, потеря 0.916291
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Шаг со скоростью 0,5</h2>
+<p>В начальной точке обе вероятности 0,5, поэтому разности p - y равны 0,5 и -0,5. Производные остаются dw = -0,5 и db = 0. После умножения на скорость получаем w = 0 - 0,5 × (-0,5) = 0,25 и b = 0. Оценки z равны -0,25 и 0,25. Вероятности класса 1 равны примерно 0,437823 и 0,562177. Для обоих заказов вероятность правильного класса 0,562177, средняя потеря около 0,575939.</p>
+<p class="listing">Меньший шаг обновления <span>(Ответы/04-step-at-half.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import exp, log
+from statistics import mean
+
+x, y = [-1, 1], [0, 1]
+errors = [0.5 - label for label in y]
+dw = mean(error * a for error, a in zip(errors, x))
+db = mean(errors)
+w, b = 0.0, 0.0
+w, b = w - 0.5 * dw, b - 0.5 * db
+p = [1 / (1 + exp(-(w * a + b))) for a in x]
+loss = -mean(log(value if label else 1 - value)
+             for value, label in zip(p, y))
+print(f&quot;w {w:.3f}, b {b:.3f}&quot;)
+print(&quot;Вероятности&quot;, [round(value, 6) for value in p])
+print(f&quot;Средняя потеря {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">w 0.250, b 0.000
+Вероятности [0.437823, 0.562177]
+Средняя потеря 0.575939
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Порог 0,65</h2>
+<p>Предупреждения получат заказы с вероятностями 0,85, 0,72 и 0,65. Фактически опоздали два из них, с p = 0,85 и p = 0,65. Итог TN = 4, FP = 1, FN = 1, TP = 2. Precision равна 2/3 и recall тоже 2/3. Верных ответов 6 из 8, accuracy равна 0,75. Заказ на границе 0,65 входит в число предупреждений.</p>
+<p class="listing">Проверка равенства порогу <span>(Ответы/05-equal-threshold.py)</span></p><pre tabindex="0" aria-label="Код"><code>p = [0.85, 0.72, 0.65, 0.55, 0.40, 0.32, 0.20, 0.10]
+y = [1, 0, 1, 0, 1, 0, 0, 0]
+decisions = [int(value &gt;= 0.65) for value in p]
+matrix = [[0, 0], [0, 0]]
+for fact, label in zip(y, decisions):
+    matrix[fact][label] += 1
+tn, fp = matrix[0]
+fn, tp = matrix[1]
+print(&quot;Предупреждений&quot;, sum(decisions), &quot;подтвердились&quot;, tp)
+print(&quot;TN FP FN TP&quot;, tn, fp, fn, tp)
+print(f&quot;precision {tp / (tp + fp):.4f}, recall {tp / (tp + fn):.4f}&quot;)
+print(f&quot;accuracy {(tn + tp) / len(y):.4f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Предупреждений 3 подтвердились 2
+TN FP FN TP 4 1 1 2
+precision 0.6667, recall 0.6667
+accuracy 0.7500
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Другая цена ошибок</h2>
+<p>Новая формула цены равна 2 × FP + FN. Для t = 0,30 получаем 2 × 3 + 0 = 6. Для t = 0,50 получаем 2 × 2 + 1 = 5. Для t = 0,70 получаем 2 × 1 + 2 = 4. Наименьшая цена среди трёх порогов теперь при t = 0,70. Вероятности и факты те же, а оценка последствий ошибок изменилась.</p>
+<p class="listing">Выбор при новой цене <span>(Ответы/06-new-error-prices.py)</span></p><pre tabindex="0" aria-label="Код"><code>counts = {0.30: (3, 0), 0.50: (2, 1), 0.70: (1, 2)}
+costs = {}
+for threshold, (fp, fn) in counts.items():
+    costs[threshold] = 2 * fp + fn
+    print(f&quot;Порог {threshold:.2f}, цена {costs[threshold]}&quot;)
+chosen = min(costs, key=costs.get)
+print(f&quot;Выбранный порог {chosen:.2f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Порог 0.30, цена 6
+Порог 0.50, цена 5
+Порог 0.70, цена 4
+Выбранный порог 0.70
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Средние прогнозы и доли</h2>
+<p>Средняя вероятность в первой группе равна 1,0 / 5 = 0,2, фактическая доля 2/5 = 0,4. В этой группе прогнозы ниже доли на 0,2. Во второй среднее 3,5 / 5 = 0,7, доля 3/5 = 0,6. Средняя вероятность выше доли на 0,1. В каждой группе всего пять наблюдений, поэтому разницу полезно перепроверить на более крупном наборе.</p>
+<p class="listing">Две группы по пять заказов <span>(Ответы/07-check-calibration.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+groups = (([0.1, 0.2, 0.3, 0.2, 0.2], 2),
+          ([0.6, 0.7, 0.8, 0.7, 0.7], 3))
+for number, (p, late) in enumerate(groups, start=1):
+    average = mean(p)
+    observed = late / len(p)
+    print(f&quot;{number}: среднее p {average:.2f}, доля {observed:.2f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">1: среднее p 0.20, доля 0.40
+2: среднее p 0.70, доля 0.60
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Сравнение с одной вероятностью</h2>
+<p>В train 10 опозданий из 20, поэтому базовая вероятность 0,5. При t = 0,30 базовое правило предупреждает о всех восьми тестовых заказах. Оно находит три опоздания и даёт пять ложных предупреждений, цена равна 5. Вероятность факта всегда 0,5, так что log loss равна -ln(0,5) ≈ 0,693147. Модель даёт цену 3 и log loss около 0,669828. Цена оценивает действия при выбранном пороге, log loss оценивает вероятности по фактическим ответам. Разница посчитана на восьми учебных заказах.</p>
+<p class="listing">Две проверки на одних заказах <span>(Ответы/08-constant-baseline.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, log_loss
+
+orders = pd.read_csv(&quot;orders-late.csv&quot;)
+train = orders.loc[orders[&quot;day&quot;] &lt;= 20]
+test = orders.loc[orders[&quot;day&quot;] &gt;= 29]
+cols = [&quot;distance_km&quot;, &quot;rush&quot;]
+model = LogisticRegression(max_iter=1000).fit(train[cols], train[&quot;late&quot;])
+actual = test[&quot;late&quot;]
+base = train[&quot;late&quot;].mean()
+print(f&quot;Базовая вероятность {base:.6f}&quot;)
+candidates = ((&quot;Модель&quot;, model.predict_proba(test[cols])[:, 1]),
+              (&quot;База&quot;, [base] * len(test)))
+for name, p in candidates:
+    labels = [int(value &gt;= 0.30) for value in p]
+    tn, fp, fn, tp = confusion_matrix(actual, labels, labels=[0, 1]).ravel()
+    price = fp + 5 * fn
+    loss = log_loss(actual, p, labels=[0, 1])
+    print(f&quot;{name}: цена {price}, log loss {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Базовая вероятность 0.500000
+Модель: цена 3, log loss 0.669828
+База: цена 5, log loss 0.693147
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

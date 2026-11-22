@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 3. Массивы и работа с данными | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 3. Массивы и работа с данными</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-03.zip" download="Книга - глава 3 данные и примеры.zip">Скачать архив главы 3</a></p>
+<p>Для самопроверки сравнивайте и итоговые числа, и путь, которым их получили. Файлы из папки «Ответы» запускаются так же, как примеры. Программы, которые читают delivery.csv, запускайте из основной папки архива.</p>
+<article id="task-01"><h2>Задание 1. Новые коэффициенты</h2>
+<p>Для расстояний 1, 2, 4 и 5 получаем 4, 8, 16 и 20. Абсолютные разности с ценами 5, 8, 14 и 17 равны 1, 0, 2 и 3. Их среднее (1 + 0 + 2 + 3) / 4 равно 1,5. Для сравнения, в исходном примере MAE составляла 4,0 на тех же четырёх заказах.</p>
+<p class="listing">Проверка расчёта ошибки <span>(Ответы/01-new-rule.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+distances = np.array([1, 2, 4, 5])
+actual = np.array([5, 8, 14, 17])
+w = 4
+b = 0
+predictions = w * distances + b
+errors = np.abs(predictions - actual)
+
+print(&quot;Предсказания&quot;, predictions.tolist())
+print(&quot;Ошибки&quot;, errors.tolist())
+print(&quot;MAE&quot;, errors.mean())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Предсказания [4, 8, 16, 20]
+Ошибки [1, 0, 2, 3]
+MAE 1.5
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Столбец масс</h2>
+<p>У массива три строки и два столбца. Масса стоит во втором столбце, поэтому её индекс равен 1. Запись features[:, 1] сохраняет все три строки и выбирает из каждой одно число. Средняя масса (1 + 2 + 3) / 3 равна 2 кг. Если выбрать столбец с индексом 0, получится среднее расстояние около 2,33 км.</p>
+<p class="listing">Выбор столбца по индексу <span>(Ответы/02-weight-column.py)</span></p><pre tabindex="0" aria-label="Код"><code>import numpy as np
+
+features = np.array([[1, 1], [2, 2], [4, 3]])
+weights = features[:, 1]
+
+print(&quot;Весь массив&quot;, features.shape)
+print(&quot;Столбец&quot;, weights.shape)
+print(&quot;Массы&quot;, weights.tolist())
+print(&quot;Средняя масса&quot;, weights.mean())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Весь массив (3, 2)
+Столбец (3,)
+Массы [1, 2, 3]
+Средняя масса 2.0
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Частоты слов</h2>
+<p>Когда express встречается впервые, get возвращает 0, поэтому значение становится 1. При следующих двух появлениях счётчик доходит до 3. Слово standard встретилось один раз. Если забыть прибавить единицу к текущему счётчику, повторные появления не изменят результат.</p>
+<p class="listing">Счётчики в словаре <span>(Ответы/03-word-count.py)</span></p><pre tabindex="0" aria-label="Код"><code>text = &quot;express standard express express&quot;
+counts = {}
+for word in text.split():
+    counts[word] = counts.get(word, 0) + 1
+
+print(counts)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">{&#x27;express&#x27;: 3, &#x27;standard&#x27;: 1}
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Подсчёт срочных заказов</h2>
+<p>В исходной таблице срочных записей шесть. Удаление второй строки заказа 106 уменьшает счёт до пяти. Отбор известных цен убирает заказ 110, в котором поле price пустое. Остаются четыре срочных заказа с номерами 105, 106, 107 и 109. Пропущенная масса у 105 и 109 не влияет на этот отбор.</p>
+<p class="listing">Подсчёт по трём версиям таблицы <span>(Ответы/04-express-count.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+raw = pd.read_csv(&quot;delivery.csv&quot;)
+clean = raw.drop_duplicates()
+labelled = clean.dropna(subset=[&quot;price&quot;])
+
+print(&quot;В исходной&quot;, (raw[&quot;service&quot;] == &quot;express&quot;).sum())
+print(&quot;Без повторов&quot;, (clean[&quot;service&quot;] == &quot;express&quot;).sum())
+print(&quot;С ценами&quot;, (labelled[&quot;service&quot;] == &quot;express&quot;).sum())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">В исходной 6
+Без повторов 5
+С ценами 4
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Какие строки определяют медиану</h2>
+<p>Изменяем массу заказа 108, который входит в test. Известные массы в train по-прежнему равны 1, 2, 2, 3, 4 и 6 кг после сортировки. Поэтому медиана train и замена для пропуска в заказе 109 равны 2,5 кг. При объединении выборок известные массы идут в порядке 0,25, 0,5, 1, 2, 2, 3, 4 и 6. Два средних значения равны 2. Для заполнения берём 2,5, рассчитанные на train.</p>
+<p>В листинге присваивание через loc меняет массу в таблице в памяти. Сравнение order_id с числом 108 выбирает нужную строку, а weight_kg указывает столбец. Для выделения заказа 109 применяем маску к заполненному столбцу масс и превращаем результат в список из одного числа.</p>
+<p class="listing">Проверка влияния тестовой строки <span>(Ответы/05-median-check.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+raw = pd.read_csv(&quot;delivery.csv&quot;)
+raw.loc[raw[&quot;order_id&quot;] == 108, &quot;weight_kg&quot;] = 0.25
+labelled = raw.drop_duplicates().dropna(subset=[&quot;price&quot;])
+train = labelled.loc[labelled[&quot;split&quot;] == &quot;train&quot;]
+test = labelled.loc[labelled[&quot;split&quot;] == &quot;test&quot;]
+
+median = train[&quot;weight_kg&quot;].median()
+filled = test[&quot;weight_kg&quot;].fillna(median)
+print(&quot;Медиана train&quot;, median)
+print(&quot;Масса 109&quot;, filled.loc[test[&quot;order_id&quot;] == 109].tolist())
+print(&quot;Общая медиана&quot;, labelled[&quot;weight_kg&quot;].median())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Медиана train 2.5
+Масса 109 [2.5]
+Общая медиана 2.0
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Границы масштаба</h2>
+<p>В train минимум равен 1 км, максимум 6 км. Для трёх километров получаем (3 - 1) / (6 - 1) = 0,4. Если взять максимум по всем строкам с ценой, граница 8 км придёт из test. Получится (3 - 1) / (8 - 1) = 2 / 7, или примерно 0,2857. При работе с новым заказом используем границы 1 и 6, сохранённые при подготовке обучающих данных.</p>
+<p class="listing">Расчёт по двум наборам границ <span>(Ответы/06-scale-check.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+
+raw = pd.read_csv(&quot;delivery.csv&quot;)
+labelled = raw.drop_duplicates().dropna(subset=[&quot;price&quot;])
+train = labelled.loc[labelled[&quot;split&quot;] == &quot;train&quot;]
+train_distance = train[&quot;distance_km&quot;]
+all_distance = labelled[&quot;distance_km&quot;]
+distance = 3
+
+def scale(value, numbers):
+    low = numbers.min()
+    high = numbers.max()
+    return (value - low) / (high - low)
+
+print(&quot;По train&quot;, round(scale(distance, train_distance), 4))
+print(&quot;По всем строкам&quot;, round(scale(distance, all_distance), 4))
+</code></pre>
+<p class="listing">Результат</p><pre class="output">По train 0.4
+По всем строкам 0.2857
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Чтение диаграммы</h2>
+<p>На 2 км обычная доставка стоит 8 условных единиц, срочная 12. На 4 км цены равны 14 и 18. Разница в обоих случаях составляет 4. Модели нужно поле service, чтобы использовать эту разницу при одинаковом расстоянии. На вход оно попадёт через два столбца индикаторов. Эта закономерность заложена в учебные данные.</p>
+</article>
+<article id="task-08"><h2>Задание 8. Новая цена в тестовой выборке</h2>
+<p>В копии delivery.csv впишите цену 18 в последнее поле строки заказа 110. Из папки с копией запустите 12-prepare.py по полному пути. В новой строке вывода увидите расстояние (4 - 1) / (6 - 1) = 0,6 и массу 5 кг.</p>
+<p class="listing">Результат минипроекта с исправленной строкой</p><pre class="output">Обучение (7, 4) (7,)
+Проверка (4, 4) (4,)
+Заказ 108 [0.4, 3.0, 1.0, 0.0]
+Заказ 109 [1.4, 2.5, 0.0, 1.0]
+Заказ 110 [0.6, 5.0, 0.0, 1.0]
+Заказ 111 [1.0, 0.5, 1.0, 0.0]
+</pre>
+<p>У X_test теперь форма (4, 4), у y_test форма (4,). В y_test добавилась цена, а в X_test соответствующая строка из четырёх признаков. На обучении остаются семь заказов, медиана масс 2,5 кг и границы расстояния 1 и 6 км.</p>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

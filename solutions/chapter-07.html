@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 7. Производная и градиентный спуск | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 7. Производная и градиентный спуск</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-07.zip" download="Книга - глава 7 градиентный спуск.zip">Скачать архив главы 7</a></p>
+<p>Программы решений находятся в папке «Ответы». Числа ниже округлены только для записи. При проверке второго и следующих шагов используйте параметры без промежуточного округления.</p>
+<article id="task-01"><h2>Задание 1. Производная при b = 3</h2>
+<p>По формуле 2(b - 7/3) при b = 3 получаем 4/3. Если h = 0,1, то L(3,1) = 0,81, а L(3) = 2/3. Разностное отношение приблизительно равно 1,433333. При h = 0,01 оно равно 1,343333. Производная положительна, поэтому при малом шаге b нужно уменьшить.</p>
+<p class="listing">Приближение наклона при b = 3 <span>(Ответы/01-slope-at-three.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+def loss(b):
+    return mean((b - a) ** 2 for a in [2, 3, 2])
+
+b = 3
+for h in (0.1, 0.01):
+    slope = (loss(b + h) - loss(b)) / h
+    print(f&quot;h {h:.2f}, наклон {slope:.6f}&quot;)
+print(f&quot;Производная {2 * (b - 7 / 3):.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">h 0.10, наклон 1.433333
+h 0.01, наклон 1.343333
+Производная 1.333333
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Две скорости для одного параметра</h2>
+<p>В исходной точке b = 2 производная равна -2/3. При η = 0,5 получаем b = 2 + 1/3 = 7/3, а MSE снижается с 1/3 до 2/9. При η = 1 получаем b = 2 + 2/3 = 8/3. Эта точка так же далека от минимума, как b = 2, поэтому MSE снова равна 1/3. Производная там равна 2/3. Второй шаг при η = 1 возвращает b к 2. Эти числа относятся к обновлению только смещения.</p>
+<p class="listing">Шаг в минимум и перескок <span>(Ответы/02-overshoot-bias.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+def loss(b):
+    return mean((b - a) ** 2 for a in [2, 3, 2])
+
+for rate in (0.5, 1.0):
+    b = 2.0
+    for step in (1, 2):
+        db = 2 * (b - 7 / 3)
+        b = b - rate * db
+        print(f&quot;η {rate:.1f}, шаг {step}, b {b:.6f}, MSE {loss(b):.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">η 0.5, шаг 1, b 2.333333, MSE 0.222222
+η 0.5, шаг 2, b 2.333333, MSE 0.222222
+η 1.0, шаг 1, b 2.666667, MSE 0.333333
+η 1.0, шаг 2, b 2.000000, MSE 0.333333
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Совместный шаг со скоростью 0,05</h2>
+<p>При w = 2, b = 2 ошибки -1, -3 и -3. Получаем dw = -32/3 и db = -14/3. Скорость 0,05 равна 1/20, значит, w = 2 + 8/15 = 38/15, b = 2 + 7/30 = 67/30. После обновления ошибки равны -7/30, -51/30 и -35/30. Их средний квадрат равен (49 + 2601 + 1225) / (900 × 3) = 155/108 ≈ 1,435185.</p>
+<p class="listing">Шаг с меньшей скоростью <span>(Ответы/03-half-rate.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [1, 2, 3]
+y = [5, 9, 11]
+w, b = 2.0, 2.0
+e = [w * a + b - price for a, price in zip(x, y)]
+dw = 2 * mean(error * a for error, a in zip(e, x))
+db = 2 * mean(e)
+w, b = w - 0.05 * dw, b - 0.05 * db
+after = mean((w * a + b - price) ** 2 for a, price in zip(x, y))
+print(f&quot;dw {dw:.6f}, db {db:.6f}&quot;)
+print(f&quot;w {w:.6f}, b {b:.6f}, MSE {after:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">dw -10.666667, db -4.666667
+w 2.533333, b 2.233333, MSE 1.435185
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Ошибка в знаке обновления</h2>
+<p>Градиент указывает направление роста потери в исходной точке. Поэтому при достаточно малом шаге со знаком плюс ожидаем роста. Для заданного шага проверим этот прогноз точным расчётом.</p>
+<p>При прибавлении градиента новый вес равен 2 + 0,10 × (-32/3) = 14/15. Смещение равно 2 + 0,10 × (-14/3) = 23/15. Новые ошибки равны -38/15, -84/15 и -100/15. MSE равна 740/27, или примерно 27,407407. При вычитании градиента получаем w = 46/15, b = 37/15 и MSE 8/27 ≈ 0,296296. Плюс направил этот шаг в сторону роста потерь.</p>
+<p class="listing">Сравнение направлений шага <span>(Ответы/04-sign.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [1, 2, 3]
+y = [5, 9, 11]
+dw, db = -32 / 3, -14 / 3
+rate = 0.1
+for name, sign in ((&quot;Плюс&quot;, 1), (&quot;Минус&quot;, -1)):
+    w = 2 + sign * rate * dw
+    b = 2 + sign * rate * db
+    loss = mean((w * a + b - price) ** 2 for a, price in zip(x, y))
+    print(f&quot;{name}: w {w:.6f}, b {b:.6f}, MSE {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Плюс: w 0.933333, b 1.533333, MSE 27.407407
+Минус: w 3.066667, b 2.466667, MSE 0.296296
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Производные на втором шаге</h2>
+<p>Для w = 46/15 и b = 37/15 ошибки равны 8/15, -6/15 и 10/15. Их сумма равна 12/15, сумма произведений с расстояниями равна (8 - 12 + 30)/15 = 26/15. Значит, dw = 52/45, db = 8/15. Обе производные положительны, поэтому оба параметра уменьшаем. Получаем w = 664/225 и b = 181/75. Новые ошибки 82/225, -154/225 и 60/225 дают MSE около 0,224132.</p>
+<p class="listing">Градиент после первого обновления <span>(Ответы/05-second-step.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [1, 2, 3]
+y = [5, 9, 11]
+w, b = 46 / 15, 37 / 15
+e = [w * a + b - price for a, price in zip(x, y)]
+dw = 2 * mean(error * a for error, a in zip(e, x))
+db = 2 * mean(e)
+w, b = w - 0.1 * dw, b - 0.1 * db
+loss = mean((w * a + b - price) ** 2 for a, price in zip(x, y))
+print(f&quot;dw {dw:.6f}, db {db:.6f}&quot;)
+print(f&quot;w {w:.6f}, b {b:.6f}, MSE {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">dw 1.155556, db 0.533333
+w 2.951111, b 2.413333, MSE 0.224132
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Ещё более длинный шаг</h2>
+<p>Начальный градиент тот же, dw = -32/3 и db = -14/3. При η = 1/4 получаем w = 14/3, b = 19/6. Ошибки равны 17/6, 21/6 и 37/6. MSE равна (289 + 441 + 1369) / (36 × 3) = 2099/108 ≈ 19,435185. После двенадцати обновлений MSE превышает пять миллионов. При η = 0,10 она снижается примерно до 0,222860. На этой функции быстрый рост потерь при η = 0,25 показывает, что параметры удаляются от минимума.</p>
+<p class="listing">Сравнение на 1 и 12 шагах <span>(Ответы/06-large-rate.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [1, 2, 3]
+y = [5, 9, 11]
+for rate in (0.10, 0.25):
+    w, b = 2.0, 2.0
+    for step in range(1, 13):
+        e = [w * a + b - price for a, price in zip(x, y)]
+        dw = 2 * mean(error * a for error, a in zip(e, x))
+        db = 2 * mean(e)
+        w, b = w - rate * dw, b - rate * db
+        if step in (1, 12):
+            loss = mean((w * a + b - price) ** 2
+                        for a, price in zip(x, y))
+            print(f&quot;η {rate:.2f}, шаг {step}, MSE {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">η 0.10, шаг 1, MSE 0.296296
+η 0.10, шаг 12, MSE 0.222860
+η 0.25, шаг 1, MSE 19.435185
+η 0.25, шаг 12, MSE 5707294.407285
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Проверка производных в другой точке</h2>
+<p>При w = 3 и b = 2 ошибки равны 0, -1 и 0. Сумма ошибок равна -1, сумма произведений e × x равна -2. Значит, dw = -4/3, db = -2/3. Для численного dw считаем потери в точках w = 3 + h и w = 3 - h при постоянном b = 2. Для db меняем только b около 2.</p>
+<p class="listing">Проверка центральной разностью <span>(Ответы/07-another-gradient.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+def loss(w, b):
+    return mean((w * x + b - y) ** 2
+                for x, y in zip([1, 2, 3], [5, 9, 11]))
+
+w, b, h = 3.0, 2.0, 0.0001
+dw = (loss(w + h, b) - loss(w - h, b)) / (2 * h)
+db = (loss(w, b + h) - loss(w, b - h)) / (2 * h)
+print(f&quot;Численно dw {dw:.6f}, db {db:.6f}&quot;)
+print(f&quot;По формуле dw {-4 / 3:.6f}, db {-2 / 3:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Численно dw -1.333333, db -0.666667
+По формуле dw -1.333333, db -0.666667
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Один шаг с двумя признаками</h2>
+<p>До обновления прогноз равен 3 × 2 + 0 × 1 + 2 = 8. Ошибка равна -3, квадрат равен 9. Производные по двум весам равны 2 × (-3) × 2 = -12 и 2 × (-3) × 1 = -6. По смещению получаем 2 × (-3) = -6. Умножаем их на η = 0,05 и вычитаем из исходных параметров. Получаем веса 3,6 и 0,3 и смещение 2,3. Новый прогноз 3,6 × 2 + 0,3 × 1 + 2,3 = 9,8, квадрат ошибки равен 1,44.</p>
+<p class="listing">Обновление трёх параметров <span>(Ответы/08-two-feature-step.py)</span></p><pre tabindex="0" aria-label="Код"><code>distance, urgent, price = 2, 1, 11
+w, c, b = 3.0, 0.0, 2.0
+rate = 0.05
+predicted = w * distance + c * urgent + b
+e = predicted - price
+dw, dc, db = 2 * e * distance, 2 * e * urgent, 2 * e
+w, c, b = w - rate * dw, c - rate * dc, b - rate * db
+new_prediction = w * distance + c * urgent + b
+print(f&quot;Градиент {dw:.1f}, {dc:.1f}, {db:.1f}&quot;)
+print(f&quot;Параметры {w:.1f}, {c:.1f}, {b:.1f}&quot;)
+print(f&quot;Прогноз {new_prediction:.1f}&quot;)
+print(f&quot;Потеря {(new_prediction - price) ** 2:.2f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Градиент -12.0, -6.0, -6.0
+Параметры 3.6, 0.3, 2.3
+Прогноз 9.8
+Потеря 1.44
+</pre>
+<p>В этом задании градиент получен по одной строке. При обучении минипроекта шаг опирается на среднюю потерю всех обучающих заказов, поэтому обновления зависят от ошибок по всей выборке.</p>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

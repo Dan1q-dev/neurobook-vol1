@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 13. Итоговый проект. Распознавание рукописных цифр | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 13. Итоговый проект. Распознавание рукописных цифр</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-13.zip" download="Книга - глава 13 распознавание рукописных цифр.zip">Скачать архив главы 13</a></p>
+
+<article id="task-01"><h2>Задание 1. Форма и яркость</h2>
+<p>Делим каждое исходное число на 255. Получаем 0, 0,501961 и 1. У двух изображений форма (2, 1, 28, 28), всего 2 × 1 × 28 × 28 = 1568 элементов. Срез [0, 0, 0, :3] выбирает первые три пикселя нулевой строки первого изображения. Индексы начинаются с нуля.</p>
+<p class="listing">Три пикселя внутри пакета <span>(Ответы/01-normalize-batch.py)</span></p><pre tabindex="0" aria-label="Код"><code>import torch
+
+pixels = torch.tensor([0, 128, 255], dtype=torch.uint8)
+normalized = pixels.float() / 255
+images = torch.zeros(2, 1, 28, 28)
+images[0, 0, 0, :3] = normalized
+print(&quot;Яркости&quot;, [round(value, 6) for value in normalized.tolist()])
+print(&quot;Форма пакета&quot;, tuple(images.shape))
+print(&quot;Пикселей в пакете&quot;, images.numel())
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Яркости [0.0, 0.501961, 1.0]
+Форма пакета (2, 1, 28, 28)
+Пикселей в пакете 1568
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Проверка выборок</h2>
+<p>Индексы первого поднабора образуют множество из 54 000 элементов, второго из 6 000. Их пересечение пустое, объединение равно всем индексам от 0 до 59 999. Новое разбиение с тем же начальным состоянием возвращает тот же список train.indices. Список проверяем отдельно, потому что множество сохраняет состав, а порядок теряет.</p>
+<p class="listing">Пересечение, покрытие и повторяемость <span>(Ответы/02-check-split.py)</span></p><pre tabindex="0" aria-label="Код"><code>from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / &quot;Примеры&quot;))
+from digit_data import training_sets
+
+train, val = training_sets()
+first, second = set(train.indices), set(val.indices)
+repeated, _ = training_sets()
+print(&quot;Размеры&quot;, len(first), len(second))
+print(&quot;Пересечение&quot;, len(first &amp; second))
+print(&quot;Все исходные индексы покрыты&quot;, first | second == set(range(60000)))
+print(&quot;Порядок воспроизведён&quot;, train.indices == repeated.indices)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Размеры 54000 6000
+Пересечение 0
+Все исходные индексы покрыты True
+Порядок воспроизведён True
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Параметры и формы</h2>
+<p>После двух пулингов остаётся (3, 16, 7, 7), после Flatten (3, 784), после линейного слоя (3, 10). В первой свёртке 8 × (1 × 3 × 3 + 1) = 80 параметров. Во второй 16 × (8 × 3 × 3 + 1) = 1168. В Linear 10 × (784 + 1) = 7850. В каждой скобке плюс 1 отвечает за смещение. Всего 9098 параметров. Размер пакета не входит в их число.</p>
+<p class="listing">Размеры пакета и три слоя с весами <span>(Ответы/03-count-parameters.py)</span></p><pre tabindex="0" aria-label="Код"><code>from pathlib import Path
+import sys
+import torch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / &quot;Примеры&quot;))
+from digit_model import make_model
+
+model = make_model()
+X = torch.zeros(3, 1, 28, 28)
+with torch.inference_mode():
+    hidden = model[:6](X)
+    logits = model[6:](hidden)
+print(&quot;После пулинга&quot;, tuple(hidden.shape))
+print(&quot;После Flatten&quot;, tuple(hidden.flatten(1).shape))
+print(&quot;Логиты&quot;, tuple(logits.shape))
+for index in (0, 3, 7):
+    count = sum(p.numel() for p in model[index].parameters())
+    print(f&quot;Слой {index}, параметров {count}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">После пулинга (3, 16, 7, 7)
+После Flatten (3, 784)
+Логиты (3, 10)
+Слой 0, параметров 80
+Слой 3, параметров 1168
+Слой 7, параметров 7850
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Последний пакет</h2>
+<p>54 000 = 421 × 128 + 112. Значит, будет 421 полный пакет и один из 112 картинок, всего 422 обновления за эпоху. Во втором расчёте сумма потерь равна 2 × 0,2 + 1 × 0,8 = 1,2. Делим на три объекта и получаем 0,4. Если просто усреднить по пакетам, получится 0,5. Тогда одна картинка из второго пакета получит тот же вес, что две из первого.</p>
+<p class="listing">Число обновлений и средняя потеря по объектам <span>(Ответы/04-average-batches.py)</span></p><pre tabindex="0" aria-label="Код"><code>full, last = divmod(54000, 128)
+sizes = [2, 1]
+losses = [0.2, 0.8]
+total = sum(size * loss for size, loss in zip(sizes, losses))
+print(&quot;Полных пакетов&quot;, full, &quot;последний размер&quot;, last)
+print(&quot;Шагов&quot;, full + int(last &gt; 0))
+print(f&quot;Потеря по объектам {total / sum(sizes):.3f}&quot;)
+print(f&quot;Среднее по пакетам {sum(losses) / len(losses):.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Полных пакетов 421 последний размер 112
+Шагов 422
+Потеря по объектам 0.400
+Среднее по пакетам 0.500
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Вероятность из десяти логитов</h2>
+<p>Числитель для класса 0 равен e². В знаменателе e² + 9, потому что экспонента нулевого логита равна 1. Вероятность около 0,450853. Потеря равна минус натуральному логарифму этой величины, около 0,796614. В CrossEntropyLoss подаём исходные логиты и индекс 0. Функция сама вычисляет нужную логарифмическую нормировку.</p>
+<p class="listing">Кросс-энтропия вручную и в PyTorch <span>(Ответы/05-ten-logits.py)</span></p><pre tabindex="0" aria-label="Код"><code>from math import exp, log
+import torch
+from torch import nn
+
+logits = torch.tensor([[2.0] + [0.0] * 9], dtype=torch.float64)
+target = torch.tensor([0])
+manual = exp(2) / (exp(2) + 9)
+criterion = nn.CrossEntropyLoss()
+loss = criterion(logits, target).item()
+print(f&quot;По формуле {manual:.6f}&quot;)
+print(f&quot;Softmax {logits.softmax(1)[0, 0].item():.6f}&quot;)
+print(f&quot;Потеря вручную {-log(manual):.6f}, в PyTorch {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">По формуле 0.450853
+Softmax 0.450853
+Потеря вручную 0.796614, в PyTorch 0.796614
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Полнота и точность для семёрки</h2>
+<p>Диагональная клетка [7, 7] равна 1001. Сумма строки 7 равна 1028, это все настоящие семёрки. Сумма столбца 7 равна 1044, это все прогнозы «7». Полнота равна 1001 / 1028 ≈ 97,37%, precision равна 1001 / 1044 ≈ 95,88%. В обе дроби входит число верных прогнозов класса 7.</p>
+<p class="listing">Одна клетка и две суммы <span>(Ответы/06-recall-and-precision.py)</span></p><pre tabindex="0" aria-label="Код"><code>import json
+from pathlib import Path
+
+table = json.loads(Path(&quot;mnist-test.json&quot;).read_text(encoding=&quot;utf-8&quot;))[&quot;confusion&quot;]
+digit = 7
+true_positive = table[digit][digit]
+actual = sum(table[digit])
+predicted = sum(row[digit] for row in table)
+print(&quot;Верные семёрки&quot;, true_positive)
+print(&quot;Настоящих семёрок&quot;, actual, &quot;прогнозов семёрки&quot;, predicted)
+print(f&quot;Полнота {100 * true_positive / actual:.2f}%&quot;)
+print(f&quot;Точность класса {100 * true_positive / predicted:.2f}%&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Верные семёрки 1001
+Настоящих семёрок 1028 прогнозов семёрки 1044
+Полнота 97.37%
+Точность класса 95.88%
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Прогноз по самому частому классу</h2>
+<p>Чаще всего в обучении встречалась цифра 1, у неё 6046 примеров. Прогнозируя этот класс на всех картинках, получим столько верных ответов, сколько таких картинок в тесте. Сумма строки 1 равна 1135. Базовая точность 11,35%. Разница с сетью составляет 86,35 процентного пункта. Класс выбирали по обучающей части.</p>
+<p class="listing">Сравнение с постоянным прогнозом <span>(Ответы/07-majority-baseline.py)</span></p><pre tabindex="0" aria-label="Код"><code>import json
+from pathlib import Path
+import sys
+import torch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / &quot;Примеры&quot;))
+from digit_data import training_sets
+
+train, _ = training_sets()
+counts = torch.bincount(train.dataset.targets[train.indices], minlength=10)
+majority = counts.argmax().item()
+result = json.loads(Path(&quot;mnist-test.json&quot;).read_text(encoding=&quot;utf-8&quot;))
+baseline = sum(result[&quot;confusion&quot;][majority])
+total = result[&quot;examples&quot;]
+print(&quot;Частый класс в train&quot;, majority, &quot;картинок&quot;, counts[majority].item())
+print(f&quot;Базовая точность {baseline}/{total} = {100 * baseline / total:.2f}%&quot;)
+print(f&quot;Разница {100 * (result[&#x27;correct&#x27;] - baseline) / total:.2f} п. п.&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Частый класс в train 1 картинок 6046
+Базовая точность 1135/10000 = 11.35%
+Разница 86.35 п. п.
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Проверка на сдвиг</h2>
+<p>При shift = 4 копируем столбцы 0-23 в 4-27. Слева остаются нули. nonzero находит изменившиеся ответы. У индекса 2 при метке 1 прогноз меняется с 1 на 4. to_pil_image готовит тензоры к сохранению в два файла.</p>
+<p>parents[1] даёт папку главы. Так подключаем «Примеры», как в главе 11. Три двоеточия сохраняют все изображения, каналы и строки. Последний срез выбирает столбцы для сдвига.</p>
+<p class="listing">Те же метки после сдвига цифр <span>(Ответы/08-shift-test-digits.py)</span></p><pre tabindex="0" aria-label="Код"><code>from pathlib import Path
+import sys
+import torch
+from torchvision.transforms.functional import to_pil_image
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / &quot;Примеры&quot;))
+from digit_data import load_digits
+from digit_model import load_model
+
+torch.set_num_threads(4)
+test = load_digits(train=False)
+X = torch.stack([test[i][0] for i in range(256)])
+y = test.targets[:256]
+shift = 4
+shifted = torch.zeros_like(X)
+if shift &gt; 0:
+    shifted[:, :, :, shift:] = X[:, :, :, :-shift]
+elif shift &lt; 0:
+    shifted[:, :, :, :shift] = X[:, :, :, -shift:]
+else:
+    shifted = X.clone()
+
+model, _ = load_model()
+with torch.inference_mode():
+    before = model(X).argmax(dim=1)
+    after = model(shifted).argmax(dim=1)
+for name, predictions in ((&quot;Исходные&quot;, before), (&quot;Сдвинутые&quot;, after)):
+    correct = (predictions == y).sum().item()
+    print(f&quot;{name}: {correct}/{len(y)}, {100 * correct / len(y):.2f}%&quot;)
+
+changed = (before != after).nonzero(as_tuple=True)[0]
+if changed.numel():
+    i = changed[0].item()
+    print(f&quot;Индекс {i}, метка {y[i]}, прогнозы {before[i]} и {after[i]}&quot;)
+    to_pil_image(X[i]).save(&quot;цифра-до.png&quot;)
+    to_pil_image(shifted[i]).save(&quot;цифра-после.png&quot;)
+else:
+    print(&quot;Прогнозы совпадают&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Исходные: 255/256, 99.61%
+Сдвинутые: 155/256, 60.55%
+Индекс 2, метка 1, прогнозы 1 и 4
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

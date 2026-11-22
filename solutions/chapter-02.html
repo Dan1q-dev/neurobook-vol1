@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 2. Первые программы на Python | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 2. Первые программы на Python</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li><li><a href="#task-09" aria-label="Задание 9">9</a></li></ul></nav>
+<p><a href="../files/chapter-02.zip" download="Книга - глава 2 примеры Python.zip">Скачать архив главы 2</a></p>
+<p>Сравнивайте не только напечатанные значения, но и порядок действий. Все решения ниже можно выполнить независимо от других файлов. В примерах с вводом показано, какие значения вводились при проверке.</p>
+<article id="task-01"><h2>Задание 1</h2>
+<p>Будут выведены 14 и 23. В price сохраняется результат вычисления при distance = 4. После присваивания distance = 7 значение price остаётся прежним. Второй print заново вычисляет выражение с текущим расстоянием.</p>
+<p class="listing">Решение задания 1 <span>(Ответы/01-assignment.py)</span></p><pre tabindex="0" aria-label="Код"><code>distance = 4
+price = 3 * distance + 2
+distance = 7
+print(price)
+print(3 * distance + 2)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">14
+23
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2</h2>
+<p>input возвращает строку. При вводе 4 переменная distance хранит текст &quot;4&quot;. Умножение 3 * distance повторяет его три раза и даёт строку &quot;444&quot;, после чего прибавить число 2 к строке невозможно. Нужно преобразовать введённую запись в число до вычисления. В этом решении предполагается корректный числовой ввод.</p>
+<p class="listing">Решение задания 2 <span>(Ответы/02-input.py)</span></p><pre tabindex="0" aria-label="Код"><code>text = input(&quot;Расстояние в км: &quot;)
+distance = float(text)
+price = 3 * distance + 2
+print(&quot;Стоимость:&quot;, price)
+</code></pre>
+<p class="listing">Пример запуска</p><pre class="output">Расстояние в км: 4
+Стоимость: 14.0
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3</h2>
+<p>Первый элемент равен 5, последний 17, длина списка равна 4. Среднее равно 44 / 4 = 11.0. Неотрицательный индекс последнего элемента равен 3. Выражение len(prices) - 1 также даёт этот индекс.</p>
+<p class="listing">Решение задания 3 <span>(Ответы/03-lists.py)</span></p><pre tabindex="0" aria-label="Код"><code>prices = [5, 8, 14, 17]
+print(prices[0])
+print(prices[-1])
+print(len(prices))
+print(sum(prices) / len(prices))
+</code></pre>
+<p class="listing">Результат</p><pre class="output">5
+17
+4
+11.0
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4</h2>
+<p>Условия проверяются сверху вниз. После первого истинного условия остальные ветки пропускаются. Если первая проверка ложна, выполняется проверка после elif. Ветка else подходит для оставшегося случая.</p>
+<p class="listing">Решение задания 4 <span>(Ответы/04-conditions.py)</span></p><pre tabindex="0" aria-label="Код"><code>actual = 8
+prediction = 7
+
+if prediction &lt; actual:
+    print(&quot;Предсказание ниже ответа.&quot;)
+elif prediction == actual:
+    print(&quot;Предсказание совпадает с ответом.&quot;)
+else:
+    print(&quot;Предсказание выше ответа.&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Предсказание ниже ответа.
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5</h2>
+<p>Индекс позволяет выбрать предсказание и известный ответ из одной и той же позиции. Абсолютные ошибки равны 2, 3, 5 и 6. Их сумма равна 16, среднее равно 4.0. Порядок элементов должен соответствовать одним и тем же объектам в обоих списках.</p>
+<p class="listing">Решение задания 5 <span>(Ответы/05-mae.py)</span></p><pre tabindex="0" aria-label="Код"><code>actuals = [5, 8, 14, 17]
+predictions = [3, 5, 9, 11]
+errors = []
+total_error = 0
+
+for index in range(len(actuals)):
+    error = abs(predictions[index] - actuals[index])
+    errors.append(error)
+    total_error = total_error + error
+
+mae = total_error / len(actuals)
+print(&quot;Ошибки:&quot;, errors)
+print(&quot;MAE:&quot;, mae)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Ошибки: [2, 3, 5, 6]
+MAE: 4.0
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6</h2>
+<p>Исходный код выводит 4.25. В начале каждого прохода total снова получает 0, поэтому после цикла в нём остаётся только последнее значение 17. Деление 17 на 4 даёт 4.25. Начальное присваивание total = 0 нужно выполнить один раз перед циклом.</p>
+<p class="listing">Решение задания 6 <span>(Ответы/06-accumulator.py)</span></p><pre tabindex="0" aria-label="Код"><code>prices = [5, 8, 14, 17]
+total = 0
+
+for price in prices:
+    total = total + price
+
+mean_price = total / len(prices)
+print(mean_price)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">11.0
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7</h2>
+<p>Среднее по обучающим стоимостям равно 11.0. На отложенных примерах постоянное предсказание даёт абсолютные ошибки 0.0 и 9.0, поэтому MAE равна 4.5. Для линейного правила из минипроекта она равна 0.0. Это сравнение относится только к данным нашего учебного примера.</p>
+<p class="listing">Решение задания 7 <span>(Ответы/07-baseline.py)</span></p><pre tabindex="0" aria-label="Код"><code>train = [[1, 5], [2, 8], [4, 14], [5, 17]]
+test = [[3, 11], [6, 20]]
+
+total_price = 0
+for sample in train:
+    total_price = total_price + sample[1]
+baseline = total_price / len(train)
+
+total_error = 0
+for sample in test:
+    actual = sample[1]
+    total_error = total_error + abs(baseline - actual)
+
+test_mae = total_error / len(test)
+print(&quot;Постоянное предсказание:&quot;, baseline)
+print(&quot;MAE на новых данных:&quot;, test_mae)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Постоянное предсказание: 11.0
+MAE на новых данных: 4.5
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8</h2>
+<p>Сначала сохраняем первый вариант и его ошибку как лучший найденный результат. Затем сравниваем с ним очередной вариант. При меньшей ошибке одновременно обновляем параметры и сохранённую ошибку. Условие использует &lt;, поэтому равная ошибка не заменяет прежний вариант. Проверка на test выполняется после выбора.</p>
+<p class="listing">Решение задания 8 <span>(Ответы/08-best-rule.py)</span></p><pre tabindex="0" aria-label="Код"><code>def predict(distance, w, b):
+    return w * distance + b
+
+
+def mae(samples, w, b):
+    if len(samples) == 0:
+        raise ValueError(&quot;Нужна хотя бы одна запись.&quot;)
+    total_error = 0
+    for sample in samples:
+        prediction = predict(sample[0], w, b)
+        total_error = total_error + abs(prediction - sample[1])
+    return total_error / len(samples)
+
+
+train = [[1, 5], [2, 8], [4, 14], [5, 17]]
+candidates = [[2, 1], [4, 0], [3, 2]]
+
+best_w = candidates[0][0]
+best_b = candidates[0][1]
+best_error = mae(train, best_w, best_b)
+
+for candidate in candidates:
+    w = candidate[0]
+    b = candidate[1]
+    error = mae(train, w, b)
+    if error &lt; best_error:
+        best_w = w
+        best_b = b
+        best_error = error
+
+test = [[3, 11], [6, 20]]
+test_error = mae(test, best_w, best_b)
+print(&quot;w =&quot;, best_w, &quot;b =&quot;, best_b)
+print(&quot;MAE на train:&quot;, best_error)
+print(&quot;MAE на test:&quot;, test_error)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">w = 3 b = 2
+MAE на train: 0.0
+MAE на test: 0.0
+</pre>
+<p>Такой перебор нашёл лучшую пару только среди предложенных вариантов по выбранному критерию. Он не проверил все возможные значения параметров. Мы использовали одну заранее выбранную линейную форму; выбор более сложного устройства модели потребует отдельной проверки, о которой пойдёт речь в главе 5.</p>
+</article>
+<article id="task-09"><h2>Задание 9</h2>
+<p>predict подставляет переданные числа в правило и не обновляет параметры. Обучение потребовало бы отдельной процедуры их подбора. Вызов mae([], 3, 2) из минипроекта вызовет ValueError с сообщением «Нужна хотя бы одна запись». Корректность синтаксиса и успешное выполнение не исключают логических ошибок. Например, программа из задания 6 запускается, но из-за сброса суммы вычисляет другое значение. Нужны проверки на примерах с известным ответом.</p>
+</article><p><a href="#">К началу главы</a></p></main></body></html>

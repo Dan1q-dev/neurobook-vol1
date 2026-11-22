@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Глава 6. Линейная регрессия | Подробные решения</title><style>
+* { box-sizing: border-box }
+html { color-scheme: light }
+body { margin: 0; background: #f3f6f9; color: #142c40; font: 1rem/1.62 system-ui, sans-serif }
+main { width: min(100%, 58rem); margin: auto; padding: clamp(1rem, 4vw, 3rem) }
+header { background: #102d45; color: #fff; border-radius: .8rem; padding: clamp(1.3rem, 5vw, 2.5rem) }
+header p { margin: 0; color: #c4e5f6 }
+header a { color: #eefaff }
+h1 { font-size: clamp(1.65rem, 5vw, 2.85rem); margin: .35em 0 .25em; line-height: 1.13 }
+h2 { font-size: 1.33rem; line-height: 1.28; margin: 0 0 .7rem }
+p { margin: .65rem 0 }
+a { color: #134f70; text-underline-offset: .16em; font-weight: 620 }
+a:focus-visible, pre:focus-visible { outline: 3px solid #b94a12; outline-offset: 3px }
+nav { margin: .9rem 0 }
+.chapter-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .6rem; padding: 0; list-style: none }
+.chapter-list a { display: block; border: 1px solid #d9e3ec; background: white; padding: .8rem 1rem; border-radius: .55rem }
+.task-list { display: flex; gap: .42rem; flex-wrap: wrap; list-style: none; padding: 0 }
+.task-list a { display: block; border: 1px solid #c1d6e4; background: #fff; border-radius: .4rem;
+  min-width: 2.45rem; text-align: center; padding: .32rem .6rem }
+article { margin: 1.05rem 0; border: 1px solid #d9e3ec; background: white;
+  padding: clamp(.9rem, 3vw, 1.6rem); border-radius: .65rem; scroll-margin: 1rem }
+article:target { border-color: #347090; box-shadow: 0 0 0 2px #e6f2f8 }
+.listing { margin-bottom: .4rem; font-weight: 620; overflow-wrap: anywhere }
+pre { box-sizing: border-box; overflow-x: auto; margin: 0 0 .85rem; padding: .78rem .9rem;
+  border-left: 3px solid #3f7593; border-radius: .22rem; background: #f0f5f8;
+  font: .94rem/1.54 Consolas, ui-monospace, monospace; tab-size: 4 }
+pre code { font: inherit }
+pre.output { white-space: pre-wrap; overflow-wrap: anywhere }
+@media print { body { background: white } main { padding: 0 } article { break-inside: auto }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere } }
+</style></head>
+<body><main><nav aria-label="Решения по главам"><a href="index.html">Все решения</a></nav><header><p>Подробные решения</p><h1>Глава 6. Линейная регрессия</h1></header><nav aria-label="Задания"><ul class="task-list"><li><a href="#task-01" aria-label="Задание 1">1</a></li><li><a href="#task-02" aria-label="Задание 2">2</a></li><li><a href="#task-03" aria-label="Задание 3">3</a></li><li><a href="#task-04" aria-label="Задание 4">4</a></li><li><a href="#task-05" aria-label="Задание 5">5</a></li><li><a href="#task-06" aria-label="Задание 6">6</a></li><li><a href="#task-07" aria-label="Задание 7">7</a></li><li><a href="#task-08" aria-label="Задание 8">8</a></li></ul></nav>
+<p><a href="../files/chapter-06.zip" download="Книга - глава 6 линейная регрессия.zip">Скачать архив главы 6</a></p>
+<p>Сверьте промежуточные вычисления и ответ. Файлы из папки «Ответы» запускаются так же, как примеры. Листинги с CSV запускайте из папки распакованного архива, где лежит orders-quality.csv.</p>
+<article id="task-01"><h2>Задание 1. Прогноз и два вида ошибки</h2>
+<p>При w = 2 и b = 3 получаем прогнозы 5, 7 и 9. Разности прогноз минус факт равны 0, -2 и -2. Последние две цены занижены. MAE равна (0 + 2 + 2) / 3 = 4 / 3, MSE равна (0 + 4 + 4) / 3 = 8 / 3. Квадраты увеличивают вклад двух промахов.</p>
+<p class="listing">Знаковые ошибки, MAE и MSE <span>(Ответы/01-residuals.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [1, 2, 3]
+y = [5, 9, 11]
+predicted = [2 * value + 3 for value in x]
+errors = [a - b for a, b in zip(predicted, y)]
+print(&quot;Прогнозы&quot;, predicted)
+print(&quot;Ошибки&quot;, errors)
+print(f&quot;MAE {mean(abs(e) for e in errors):.3f}&quot;)
+print(f&quot;MSE {mean(e ** 2 for e in errors):.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Прогнозы [5, 7, 9]
+Ошибки [0, -2, -2]
+MAE 1.333
+MSE 2.667
+</pre>
+</article>
+<article id="task-02"><h2>Задание 2. Более мелкая сетка смещений</h2>
+<p>При b = 2 ошибки равны 0, -1 и 0, MSE равна 1 / 3. При b = 2,25 ошибки равны 0,25, -0,75 и 0,25. Сумма квадратов 0,6875, MSE равна 11 / 48, или примерно 0,229167. При b = 2,50 три модуля ошибки равны 0,50, поэтому MSE равна 0,25. Из трёх вариантов выбираем b = 2,25. Точное b = 7 / 3 даёт меньшую MSE, 2 / 9.</p>
+<p class="listing">Сравнение трёх смещений <span>(Ответы/02-smaller-grid.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+required = [2, 3, 2]
+for b in (2, 2.25, 2.50, mean(required)):
+    loss = mean((b - value) ** 2 for value in required)
+    print(f&quot;b {b:.3f}, MSE {loss:.6f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">b 2.000, MSE 0.333333
+b 2.250, MSE 0.229167
+b 2.500, MSE 0.250000
+b 2.333, MSE 0.222222
+</pre>
+</article>
+<article id="task-03"><h2>Задание 3. Новые расстояния и цены</h2>
+<p>Среднее расстояние равно 3, средняя цена 28 / 3. Отклонения dx равны -2, 0 и 2. Отклонения dy равны -16 / 3, 5 / 3 и 11 / 3. Сумма произведений равна 32 / 3 + 0 + 22 / 3 = 18, сумма dx² равна 4 + 0 + 4 = 8. Вес w = 18 / 8 = 2,25, а b = 28 / 3 - 2,25 × 3 = 31 / 12. При 3 км прогноз равен средней цене 28 / 3.</p>
+<p class="listing">Суммы отклонений и прогноз <span>(Ответы/03-fit-new-line.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [1, 3, 5]
+y = [4, 11, 13]
+x_mean, y_mean = mean(x), mean(y)
+dx = [value - x_mean for value in x]
+dy = [value - y_mean for value in y]
+product = sum(a * b for a, b in zip(dx, dy))
+squares = sum(value ** 2 for value in dx)
+w = product / squares
+b = y_mean - w * x_mean
+
+print(f&quot;Средние {x_mean:.3f}, {y_mean:.3f}&quot;)
+print(f&quot;Суммы {product:.3f}, {squares:.3f}&quot;)
+print(f&quot;w {w:.3f}, b {b:.3f}, прогноз на 3 км {w * 3 + b:.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Средние 3.000, 9.333
+Суммы 18.000, 8.000
+w 2.250, b 2.583, прогноз на 3 км 9.333
+</pre>
+</article>
+<article id="task-04"><h2>Задание 4. Одинаковые расстояния</h2>
+<p>На 2 км модель выдаёт одно число 2w + b. Наименьший средний квадрат получается для среднего цен, (6 + 8 + 10) / 3 = 8. Подходят, например, w = 0, b = 8 и w = 3, b = 2. У обеих пар ошибки 2, 0 и -2, MSE равна 8 / 3. В формуле из главы dx равно нулю для всех записей, то есть знаменатель нулевой. Раздельно оценить вес и смещение можно по наблюдениям с разными расстояниями.</p>
+<p class="listing">Два набора параметров с одним прогнозом <span>(Ответы/04-constant-distance.py)</span></p><pre tabindex="0" aria-label="Код"><code>from statistics import mean
+
+x = [2, 2, 2]
+y = [6, 8, 10]
+x_mean = mean(x)
+total_square = sum((value - x_mean) ** 2 for value in x)
+print(&quot;Сумма квадратов dx&quot;, total_square)
+print(&quot;Лучший прогноз при 2 км&quot;, mean(y))
+for w, b in ((0, 8), (3, 2)):
+    predicted = [w * value + b for value in x]
+    mse = mean((a - b) ** 2 for a, b in zip(predicted, y))
+    print(&quot;w, b&quot;, w, b, &quot;прогнозы&quot;, predicted, f&quot;MSE {mse:.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">Сумма квадратов dx 0
+Лучший прогноз при 2 км 8
+w, b 0 8 прогнозы [8, 8, 8] MSE 2.667
+w, b 3 2 прогнозы [8, 8, 8] MSE 2.667
+</pre>
+</article>
+<article id="task-05"><h2>Задание 5. Новая надбавка за срочность</h2>
+<p>Разница обычных цен на 3 км и 1 км равна 6, значит, w = 3. Срочная на 1 км стоит 10 вместо 5, поэтому c = 5. Для обычной на 1 км b = 5 - 3 = 2. Для обычной на 4 км получится 3 × 4 + 2 = 14, для срочной добавим 5 и получим 19.</p>
+<p class="listing">Обучение с изменёнными ценами <span>(Ответы/05-refit-surcharge.py)</span></p><pre tabindex="0" aria-label="Код"><code>from sklearn.linear_model import LinearRegression
+
+X = [[1, 0], [3, 0], [1, 1], [3, 1]]
+y = [5, 11, 10, 16]
+model = LinearRegression().fit(X, y)
+w, c = model.coef_
+standard, express = model.predict([[4, 0], [4, 1]])
+print(f&quot;w {w:.3f}, c {c:.3f}, b {model.intercept_:.3f}&quot;)
+print(f&quot;На 4 км, обычная {standard:.3f}, срочная {express:.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">w 3.000, c 5.000, b 2.000
+На 4 км, обычная 14.000, срочная 19.000
+</pre>
+</article>
+<article id="task-06"><h2>Задание 6. Ошибки четырёх заказов</h2>
+<p>Для заказа 215 расстояние 3 км и обычный тип, поэтому z = 0. Подставляя округлённые коэффициенты, получаем 3,044 × 3 + 1,844 = 10,976. Python использует полную точность и даёт примерно 10,978. Факт равен 12, значит, знаковая ошибка около -1,022. Модули четырёх ошибок равны примерно 1,022, 1,067, 2,933 и 1,111. По неокруглённым значениям MAE около 1,533.</p>
+<p class="listing">Факт и прогноз по каждому заказу <span>(Ответы/06-test-residuals.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error
+
+orders = pd.read_csv(&quot;orders-quality.csv&quot;)
+orders[&quot;is_express&quot;] = (orders[&quot;service&quot;] == &quot;express&quot;).astype(int)
+train = orders.loc[orders[&quot;day&quot;] &lt;= 10]
+test = orders.loc[orders[&quot;day&quot;] &gt;= 15]
+cols = [&quot;distance_km&quot;, &quot;is_express&quot;]
+model = LinearRegression().fit(train[cols], train[&quot;price&quot;])
+predicted = model.predict(test[cols])
+
+for order, fact, value in zip(test[&quot;order_id&quot;], test[&quot;price&quot;], predicted):
+    print(f&quot;{order} факт {fact}, прогноз {value:.3f}, ошибка {value-fact:.3f}&quot;)
+print(f&quot;MAE {mean_absolute_error(test[&#x27;price&#x27;], predicted):.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">215 факт 12, прогноз 10.978, ошибка -1.022
+216 факт 13, прогноз 11.933, ошибка -1.067
+217 факт 24, прогноз 21.067, ошибка -2.933
+218 факт 19, прогноз 20.111, ошибка 1.111
+MAE 1.533
+</pre>
+</article>
+<article id="task-07"><h2>Задание 7. Изменение тестового ответа</h2>
+<p>Прогноз заказа 217 равен примерно 21,067. И цена 24, и новая цена 34 выше этого прогноза, поэтому модуль ошибки увеличивается ровно на 10. У четырёх заказов среднее увеличится на 10 / 4 = 2,5. Новая MAE около 1,533 + 2,500 = 4,033. Код меняет копию тестовых цен после обучения и подставляет те же прогнозы.</p>
+<p class="listing">Оценка при исправленном тестовом ответе <span>(Ответы/07-correct-test-price.py)</span></p><pre tabindex="0" aria-label="Код"><code>import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error
+
+orders = pd.read_csv(&quot;orders-quality.csv&quot;)
+orders[&quot;is_express&quot;] = (orders[&quot;service&quot;] == &quot;express&quot;).astype(int)
+train = orders.loc[orders[&quot;day&quot;] &lt;= 10]
+test = orders.loc[orders[&quot;day&quot;] &gt;= 15]
+cols = [&quot;distance_km&quot;, &quot;is_express&quot;]
+model = LinearRegression().fit(train[cols], train[&quot;price&quot;])
+predicted = model.predict(test[cols])
+new_price = test[&quot;price&quot;].copy()
+new_price.loc[test[&quot;order_id&quot;] == 217] = 34
+
+old = mean_absolute_error(test[&quot;price&quot;], predicted)
+new = mean_absolute_error(new_price, predicted)
+print(f&quot;MAE до изменения {old:.3f}&quot;)
+print(f&quot;MAE после изменения {new:.3f}&quot;)
+print(f&quot;Разница {new - old:.3f}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">MAE до изменения 1.533
+MAE после изменения 4.033
+Разница 2.500
+</pre>
+</article>
+<article id="task-08"><h2>Задание 8. Прогноз за пределами обучающих расстояний</h2>
+<p>Из ручного расчёта w = 3 и b = 7 / 3. На 2 км прогноз равен 6 + 7 / 3 = 25 / 3, около 8,333. На 12 км прогноз равен 36 + 7 / 3 = 115 / 3, около 38,333. Расстояние 2 лежит внутри обучающего диапазона 1-3 км. Для расстояния 12 км продолжаем прямую далеко за его границы. Для проверки нужны фактические цены новых заказов на похожих дальних маршрутах и сведения о том, какие тарифы и условия на них действуют.</p>
+<p class="listing">Проверка диапазона признака <span>(Ответы/08-distance-range.py)</span></p><pre tabindex="0" aria-label="Код"><code>from sklearn.linear_model import LinearRegression
+
+distance = [1, 2, 3]
+X = [[value] for value in distance]
+model = LinearRegression().fit(X, [5, 9, 11])
+for value in (2, 12):
+    predicted = model.predict([[value]])[0]
+    inside = min(distance) &lt;= value &lt;= max(distance)
+    print(f&quot;{value} км: {predicted:.3f}, внутри диапазона {inside}&quot;)
+</code></pre>
+<p class="listing">Результат</p><pre class="output">2 км: 8.333, внутри диапазона True
+12 км: 38.333, внутри диапазона False
+</pre>
+</article><p><a href="#">К началу главы</a></p></main></body></html>
